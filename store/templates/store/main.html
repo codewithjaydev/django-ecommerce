@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <title>Ecommerce</title>
+</head>
+<body>
+ <nav class="navbar">
+        <div class="nav-left">
+            <a href="#" class="nav-item">Ecommerce</a>
+            <a href="#" class="nav-item">Store</a>
+        </div>
+        
+        <div class="nav-right">
+            <button class="login-btn">Login</button>
+            
+            <div class="cart-container">
+                <!-- Only the image is clickable and redirects to cart -->
+                <img id="cart-img" src="{% static 'css/images/cart.png' %}" alt="Shopping Cart" class="cart-icon"
+                     style="cursor:pointer;"
+                     onclick="window.location.href='{% url 'cart' %}';"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                
+                <!-- loads the cart image if the cart.png does not load -->
+                <svg class="cart-icon" viewBox="0 0 24 24" style="display: none; fill: rgb(153, 18, 18);">
+                    <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+                
+                <span class="cart-badge">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        {% block content %}
+        {% endblock content %}
+    </div>
+
+    <script>
+  document.getElementById('cart-img').onclick = function() {
+    window.location.href = "{% url 'cart' %}";
+  };
+    </script>
+</body>
+</html>
