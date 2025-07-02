@@ -2,8 +2,6 @@
 {% load static %}
 {% block content %}
 <style>
-
-/* General Styles */
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: #f4f6f8;
@@ -12,86 +10,6 @@ body {
     padding: 0;
 }
 
-/* Form Layout */
-#form-wrapper {
-    background: #fff;
-    border-radius: 0.75rem;
-    padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    margin-bottom: 2rem;
-}
-
-#user-info {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-#user-info .form-field {
-    flex: 1;
-}
-
-#shipping-info {
-    margin-top: 1.5rem;
-}
-
-#shipping-info > hr {
-    margin: 0.5rem 0;
-}
-
-#shipping-info p {
-    font-weight: 600;
-    margin: 0;
-    color: #222;
-    letter-spacing: 0.02em;
-}
-
-#shipping-info .address-city-row,
-#shipping-info .state-zip-row {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.form-control {
-    display: block;
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 1rem;
-    background: #f9fafb;
-    transition: border-color 0.2s;
-}
-
-.form-control:focus {
-    border-color: #28a745;
-    outline: none;
-    background: #fff;
-}
-
-#form-button {
-    display: block;
-    width: 100%;
-    padding: 0.85rem;
-    background: linear-gradient(90deg, #28a745 60%, #218838 100%);
-    color: #fff;
-    border: none;
-    border-radius: 0.375rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 1.5rem;
-    box-shadow: 0 1px 2px rgba(40,167,69,0.08);
-    transition: background 0.2s, box-shadow 0.2s;
-}
-
-#form-button:hover, #form-button:focus {
-    background: linear-gradient(90deg, #218838 60%, #28a745 100%);
-    box-shadow: 0 2px 8px rgba(40,167,69,0.12);
-}
-
-/* Order Summary Styles */
 .box-element {
     background: #fff;
     border-radius: 0.75rem;
@@ -150,7 +68,82 @@ h5 {
     font-weight: 500;
 }
 
-/* Responsive Adjustments */
+.back-to-cart-btn {
+    display: inline-block;
+    padding: 10px 22px;
+    border-radius: 6px;
+    border: 2px solid #003366;
+    background: #fafdff;
+    color: #003366;
+    font-weight: 600;
+    font-size: 1.05em;
+    text-decoration: none;
+    transition: all 0.22s;
+    box-shadow: 0 2px 8px rgba(0, 51, 102, 0.04);
+    margin-bottom: 10px;
+}
+.back-to-cart-btn:hover, .back-to-cart-btn:focus {
+    background: #003366;
+    color: #fff;
+    transform: translateY(-2px) scale(1.04);
+    text-decoration: none;
+}
+
+/* Form Styling */
+.form-field {
+    margin-bottom: 1.5rem;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.form-field input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fff;
+}
+
+.form-field input:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.form-field input:invalid {
+    border-color: #dc3545;
+}
+
+#make-payment {
+    display: block;
+    margin: 32px auto 0 auto;
+    padding: 14px 38px;
+    background: linear-gradient(90deg, #28a745 70%, #218838 100%);
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1.18rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(40,167,69,0.10);
+    transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+    letter-spacing: 0.5px;
+}
+#make-payment:hover, #make-payment:focus {
+    background: linear-gradient(90deg, #218838 70%, #28a745 100%);
+    box-shadow: 0 4px 16px rgba(40,167,69,0.18);
+    transform: translateY(-2px) scale(1.04);
+    outline: none;
+}
+
 @media (max-width: 900px) {
     .row {
         flex-direction: column;
@@ -162,12 +155,6 @@ h5 {
 }
 
 @media (max-width: 768px) {
-    #user-info,
-    #shipping-info .address-city-row,
-    #shipping-info .state-zip-row {
-        flex-direction: column;
-        gap: 0;
-    }
     .cart-row {
         flex-direction: column;
         align-items: flex-start;
@@ -176,67 +163,185 @@ h5 {
         margin-bottom: 0.75rem;
         margin-right: 0;
     }
-    #form-wrapper, .box-element {
+    .box-element {
         padding: 1rem;
+    }
+    #make-payment {
+        width: 100%;
+        padding: 14px 0;
+        font-size: 1rem;
     }
 }
 </style>
 
-
 <div class="row" style="gap: 2rem;">
     <div class="col-lg-6">
-        <div class="box-element" id="form-wrapper">
-            <form id="form">
-                <div id="user-info">
-                    <div class="form-field">
-                        <input required class="form-control" type="text" name="name" placeholder="Name..">
-                    </div>
-                    <div class="form-field">
-                        <input required class="form-control" type="email" name="email" placeholder="Email..">
-                    </div>
-                </div>
-                <div id="shipping-info">
-                    <hr>
-                    <p>Shipping Information</p>
-                    <hr>
-                    <div class="address-city-row">
-                        <div class="form-field">
-                            <input class="form-control" type="text" name="address" placeholder="Address..">
-                        </div>
-                        <div class="form-field">
-                            <input class="form-control" type="text" name="city" placeholder="City">
-                        </div>
-                    </div>
-                    <div class="state-zip-row">
-                        <div class="form-field">
-                            <input class="form-control" type="text" name="state" placeholder="State">
-                        </div>
-                        <div class="form-field">
-                            <input class="form-control" type="text" name="zipcode" placeholder="Zip Code..">
-                        </div>
-                    </div>
-                </div>
-                <hr>
-                <input id="form-button" class="btn btn-success btn-block" type="submit" value="Continue..">
-            </form>
-        </div>
-    </div>
-    <div class="col-lg-6">
         <div class="box-element">
-            <a class="btn btn-outline-dark" href="{% url 'cart' %}">&#x2190; Back to Cart</a>
+            <a class="back-to-cart-btn" href="{% url 'cart' %}">&#x2190; Back to Cart</a>
             <hr>
             <h3>Order Summary</h3>
             <hr>
+            {% for item in items %}
             <div class="cart-row">
                 <div style="flex:2">
-                    <img class="row-image" src="{% static 'css/images/image.png' %}" alt="image not found haha">
+                    <img class="row-image" src="{{item.product.imageURL}}" alt="image not found haha">
                 </div>
-                <div style="flex:2">Product 1</div>
-                <div style="flex:1; white-space:nowrap; text-align:right;">Rs 300</div>
+                <div style="flex:2">{{item.product.name}}</div>
+                <div style="flex:1; white-space:nowrap; text-align:right;">{{item.product.price}}</div>
+                <div style="flex:1; white-space:nowrap; text-align:right;">{{item.quantity}}Kg</div>
             </div>
-            <h5>Items: 12</h5>
-            <h5>Total: Rs 390</h5>
+            {% endfor %}
+            <h5>Items: <strong>{{order.get_cart_items}}</strong></h5>
+            <h5>Total: <strong>Rs{{order.get_cart_total}}</strong></h5>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="box-element">
+            <form id="form">
+                <h3>Shipping Information</h3>
+                <hr>
+                
+                {% if request.user.is_authenticated %}
+                    <p>Logged in as: <strong>{{request.user.username}}</strong></p>
+                    <p>Email: <strong>{{request.user.email}}</strong></p>
+                {% else %}
+                    <div class="form-field">
+                        <label for="id_name">Full Name *</label>
+                        <input type="text" name="name" id="id_name" placeholder="Enter your full name" required>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="id_email">Email Address *</label>
+                        <input type="email" name="email" id="id_email" placeholder="Enter your email" required>
+                    </div>
+                {% endif %}
+                
+                <div class="form-field">
+                    <label for="id_address">Address *</label>
+                    <input type="text" name="address" id="id_address" placeholder="Enter your address" required>
+                </div>
+                
+                <div class="form-field">
+                    <label for="id_city">City *</label>
+                    <input type="text" name="city" id="id_city" placeholder="Enter your city" required>
+                </div>
+                
+                <div class="form-field">
+                    <label for="id_phone">Phone Number</label>
+                    <input type="tel" name="phone" id="id_phone" placeholder="Enter your phone number">
+                </div>
+                
+                <div class="form-field">
+                    <label for="id_zipcode">Postal Code</label>
+                    <input type="text" name="zipcode" id="id_zipcode" placeholder="Enter postal code">
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <button id="make-payment">Make payment</button>
+</div>
+
+<script>
+    // Get the order total from Django template
+    var orderTotal = {{order.get_cart_total}};
+    var currentUser = '{{request.user}}';
+    var csrfToken = '{{csrf_token}}';
+    
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentButton = document.getElementById('make-payment');
+        
+        if (paymentButton) {
+            paymentButton.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent any default behavior
+                console.log('Payment button clicked'); // Debug log
+                submitFormData();
+            });
+        } else {
+            console.error('Payment button not found');
+        }
+    });
+
+    function submitFormData() {
+        console.log('submitFormData called'); // Debug log
+        
+        // Get form element
+        const form = document.getElementById('form');
+        
+        if (!form) {
+            console.error('Form not found');
+            alert('Form not found. Please refresh the page.');
+            return;
+        }
+        
+        let userFormData = {
+            'name': null,
+            'email': null,
+            'total': orderTotal,
+            'address': null,
+            'city': null,
+            'phone': null,
+            'zipcode': null
+        }
+        
+        // If user is authenticated, get their info from the user object
+        if(currentUser != 'AnonymousUser') {
+            userFormData.name = '{{request.user.get_full_name|default:request.user.username}}';
+            userFormData.email = '{{request.user.email}}';
+        } else {
+            // Get form data for anonymous users
+            const nameField = form.querySelector('input[name="name"]');
+            const emailField = form.querySelector('input[name="email"]');
+            
+            if (nameField) userFormData.name = nameField.value;
+            if (emailField) userFormData.email = emailField.value;
+        }
+        
+        // Get shipping information for all users
+        const addressField = form.querySelector('input[name="address"]');
+        const cityField = form.querySelector('input[name="city"]');
+        const phoneField = form.querySelector('input[name="phone"]');
+        const zipcodeField = form.querySelector('input[name="zipcode"]');
+        
+        if (addressField) userFormData.address = addressField.value;
+        if (cityField) userFormData.city = cityField.value;
+        if (phoneField) userFormData.phone = phoneField.value || '';
+        if (zipcodeField) userFormData.zipcode = zipcodeField.value || '';
+        
+        // Basic validation
+        if (!userFormData.name || !userFormData.email || !userFormData.address || !userFormData.city) {
+            alert('Please fill in all required fields (marked with *)');
+            return;
+        }
+
+        console.log('Sending data:', userFormData); // Debug log
+
+        let url = '/process_order/';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({'form': userFormData})
+        })
+        .then((response) => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then((data) => {
+            console.log('Success:', data);
+            alert('Transaction completed');
+            window.location.href = "{% url 'store' %}";
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occurred during the transaction: ' + error.message);
+        });
+    }
+</script>
 {% endblock content %}

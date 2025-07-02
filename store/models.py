@@ -44,9 +44,10 @@ class Order(models.Model):
         return total
     @property
     def get_cart_items(self):
-        orderitems = self.orderitem_set.all()
-        total= sum([item.quantity for item in orderitems])
-        return total
+         orderitems = self.orderitem_set.all()
+         total = len(orderitems)  # or orderitems.count()
+         return total
+
     
 class OrderItem(models.Model):
     product=models.ForeignKey(Product,on_delete=models.SET_NULL,blank=True,null=True)
