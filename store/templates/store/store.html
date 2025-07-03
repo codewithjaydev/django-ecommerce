@@ -135,4 +135,12 @@
     </div>
     {% endfor %}
 </div>  
+<script>
+    document.querySelectorAll('.btn-add-to-cart').forEach(button => {
+        button.addEventListener('click', function() {
+            
+            alert( ' added to cart successfully!');
+        });
+    });
+</script>
 {% endblock content %}
