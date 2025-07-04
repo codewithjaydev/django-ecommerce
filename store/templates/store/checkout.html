@@ -2,346 +2,465 @@
 {% load static %}
 {% block content %}
 <style>
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f4f6f8;
-    color: #222;
-    margin: 0;
-    padding: 0;
-}
-
-.box-element {
-    background: #fff;
-    border-radius: 0.75rem;
-    padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    margin-bottom: 2rem;
-}
-
-h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #222;
-    font-weight: 700;
-}
-
-.cart-row {
+    /* Checkout Page Styles */
+.checkout-main {
     display: flex;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #e5e7eb;
-    column-gap: 4.5rem;
+    flex-wrap: wrap;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Arial', sans-serif;
 }
 
-.cart-row:last-child {
-    border-bottom: none;
-}
-
-.row-image {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 0.375rem;
-    margin-right: 1rem;
-    background: #f3f4f6;
+/* Shipping Form Styles */
+.user-shipping-info {
+    flex: 1;
+    min-width: 300px;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
 }
 
-.cart-row div {
-    flex: 1;
-    font-size: 1rem;
-}
-
-.cart-row div:nth-child(2) {
-    flex: 2;
-}
-
-.cart-row div:nth-child(3) {
+.user-shipping-info h2 {
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
     font-weight: 600;
-    color: #28a745;
 }
 
-h5 {
-    font-size: 1.1rem;
-    margin: 0.75rem 0;
-    color: #333;
-    font-weight: 500;
-}
-
-.back-to-cart-btn {
-    display: inline-block;
-    padding: 10px 22px;
-    border-radius: 6px;
-    border: 2px solid #003366;
-    background: #fafdff;
-    color: #003366;
-    font-weight: 600;
-    font-size: 1.05em;
-    text-decoration: none;
-    transition: all 0.22s;
-    box-shadow: 0 2px 8px rgba(0, 51, 102, 0.04);
-    margin-bottom: 10px;
-}
-.back-to-cart-btn:hover, .back-to-cart-btn:focus {
-    background: #003366;
-    color: #fff;
-    transform: translateY(-2px) scale(1.04);
-    text-decoration: none;
-}
-
-/* Form Styling */
-.form-field {
+.user-info {
+    display: flex;
+    gap: 1rem;
     margin-bottom: 1.5rem;
 }
 
-.form-field label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #333;
-    font-size: 0.95rem;
+.user-info input {
+    flex: 1;
 }
 
-.form-field input {
+.shipping-info {
+    margin-bottom: 1.5rem;
+}
+
+.shipping-info p {
+    color: #374151;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+/* Form Input Styles */
+.user-shipping-info input[type="text"],
+.user-shipping-info input[type="email"] {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.5rem;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
     font-size: 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    background: #fff;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
 }
 
-.form-field input:focus {
+.user-shipping-info input[type="text"]:focus,
+.user-shipping-info input[type="email"]:focus {
     outline: none;
-    border-color: #28a745;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-field input:invalid {
-    border-color: #dc3545;
+.user-shipping-info input[type="text"]::placeholder,
+.user-shipping-info input[type="email"]::placeholder {
+    color: #9ca3af;
 }
 
-#make-payment {
-    display: block;
-    margin: 32px auto 0 auto;
-    padding: 14px 38px;
-    background: linear-gradient(90deg, #28a745 70%, #218838 100%);
-    color: #fff;
+/* HR Styles */
+.user-shipping-info hr {
     border: none;
-    border-radius: 0.5rem;
-    font-size: 1.18rem;
-    font-weight: 700;
+    height: 1px;
+    background: #e5e7eb;
+    margin: 1.5rem 0;
+}
+
+/* Submit Button */
+#form-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(40,167,69,0.10);
-    transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-#make-payment:hover, #make-payment:focus {
-    background: linear-gradient(90deg, #218838 70%, #28a745 100%);
-    box-shadow: 0 4px 16px rgba(40,167,69,0.18);
-    transform: translateY(-2px) scale(1.04);
-    outline: none;
+
+#form-btn:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
 }
 
-@media (max-width: 900px) {
-    .row {
-        flex-direction: column;
-    }
-    .col-lg-6 {
-        width: 100%;
-        max-width: 100%;
-    }
+#form-btn:active {
+    transform: translateY(0);
 }
 
+/* Payment Option Styles */
+.payment-option {
+    flex: 1;
+    min-width: 300px;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.payment-option h1 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.payment-option h3 {
+    color: #374151;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+/* Order Details Styles */
+.checkout-order-details {
+    flex: 1;
+    min-width: 300px;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.back-to-cart {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.back-to-cart:hover {
+    background: #e5e7eb;
+}
+
+.back-to-cart a {
+    text-decoration: none;
+    color: #374151;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkout-order-details h3 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.checkout-order-details hr {
+    border: none;
+    height: 1px;
+    background: #e5e7eb;
+    margin: 1rem 0;
+}
+
+/* Table Styles */
+.cart-details table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.cart-details th {
+    background: #f9fafb;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.cart-details td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #6b7280;
+}
+
+.cart-details tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* Total Styles */
+#order-details-total {
+    font-size: 1.25rem;
+    color: #1f2937;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+#order-details-total strong {
+    color: #059669;
+    font-size: 1.5rem;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    .cart-row {
+    .checkout-main {
         flex-direction: column;
-        align-items: flex-start;
+        padding: 1rem;
+        gap: 1rem;
     }
-    .row-image {
-        margin-bottom: 0.75rem;
-        margin-right: 0;
+    
+    .user-info {
+        flex-direction: column;
+        gap: 0;
     }
-    .box-element {
+    
+    .user-shipping-info,
+    .payment-option,
+    .checkout-order-details {
+        padding: 1.5rem;
+    }
+    
+    .cart-details table {
+        font-size: 0.9rem;
+    }
+    
+    .cart-details th,
+    .cart-details td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .checkout-main {
+        padding: 0.5rem;
+    }
+    
+    .user-shipping-info,
+    .payment-option,
+    .checkout-order-details {
         padding: 1rem;
     }
-    #make-payment {
-        width: 100%;
-        padding: 14px 0;
+    
+    .cart-details table {
+        font-size: 0.8rem;
+    }
+    
+    .cart-details th,
+    .cart-details td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    #order-details-total {
         font-size: 1rem;
     }
+    
+    #order-details-total strong {
+        font-size: 1.25rem;
+    }
+}
+
+/* Animation for smooth transitions */
+.user-shipping-info,
+.payment-option,
+.checkout-order-details {
+    transition: all 0.3s ease;
+}
+
+/* Focus states for accessibility */
+.back-to-cart:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Loading state for form submission */
+#form-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Error state for inputs */
+.user-shipping-info input.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Success state */
+.success-message {
+    background: #dcfce7;
+    color: #166534;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #bbf7d0;
+    margin-bottom: 1rem;
+}
+
+/* Empty cart state */
+.cart-details tbody tr td[colspan="3"] {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 2rem;
 }
 </style>
+<div class="checkout-main">
 
-<div class="row" style="gap: 2rem;">
-    <div class="col-lg-6">
-        <div class="box-element">
-            <a class="back-to-cart-btn" href="{% url 'cart' %}">&#x2190; Back to Cart</a>
-            <hr>
-            <h3>Order Summary</h3>
-            <hr>
-            {% for item in items %}
-            <div class="cart-row">
-                <div style="flex:2">
-                    <img class="row-image" src="{{item.product.imageURL}}" alt="image not found haha">
-                </div>
-                <div style="flex:2">{{item.product.name}}</div>
-                <div style="flex:1; white-space:nowrap; text-align:right;">{{item.product.price}}</div>
-                <div style="flex:1; white-space:nowrap; text-align:right;">{{item.quantity}}Kg</div>
+    <!-- SHIPPING FORM -->
+    <div class="user-shipping-info">
+        <form id="form">
+            <div class="user-info">
+                <input type="text" name="name" placeholder="Enter Name.." required>
+                <input type="email" name="email" placeholder="Enter Email.." required>
             </div>
-            {% endfor %}
-            <h5>Items: <strong>{{order.get_cart_items}}</strong></h5>
-            <h5>Total: <strong>Rs{{order.get_cart_total}}</strong></h5>
-        </div>
-    </div>
-    
-    <div class="col-lg-6">
-        <div class="box-element">
-            <form id="form">
-                <h3>Shipping Information</h3>
+            <hr>
+
+            <div class="shipping-info">
+                <p>Shipping Information:</p>
                 <hr>
-                
-                {% if request.user.is_authenticated %}
-                    <p>Logged in as: <strong>{{request.user.username}}</strong></p>
-                    <p>Email: <strong>{{request.user.email}}</strong></p>
-                {% else %}
-                    <div class="form-field">
-                        <label for="id_name">Full Name *</label>
-                        <input type="text" name="name" id="id_name" placeholder="Enter your full name" required>
-                    </div>
-                    
-                    <div class="form-field">
-                        <label for="id_email">Email Address *</label>
-                        <input type="email" name="email" id="id_email" placeholder="Enter your email" required>
-                    </div>
-                {% endif %}
-                
-                <div class="form-field">
-                    <label for="id_address">Address *</label>
-                    <input type="text" name="address" id="id_address" placeholder="Enter your address" required>
-                </div>
-                
-                <div class="form-field">
-                    <label for="id_city">City *</label>
-                    <input type="text" name="city" id="id_city" placeholder="Enter your city" required>
-                </div>
-                
-                <div class="form-field">
-                    <label for="id_phone">Phone Number</label>
-                    <input type="tel" name="phone" id="id_phone" placeholder="Enter your phone number">
-                </div>
-                
-                <div class="form-field">
-                    <label for="id_zipcode">Postal Code</label>
-                    <input type="text" name="zipcode" id="id_zipcode" placeholder="Enter postal code">
-                </div>
-            </form>
+                <input type="text" name="address" placeholder="Address.." required>
+                <input type="text" name="city" placeholder="City.." required>
+                <input type="text" name="state" placeholder="State.." required>
+                <input type="text" name="phone" placeholder="Phone Number.." required>
+                <input type="text" name="zipcode" placeholder="Zip code.." required>
+            </div>
+            <hr>
+            <input id="form-btn" type="submit" value="Continue">
+        </form>
+    </div>
+
+    <div class="payment-option" style="display: none;">
+        <h1>Payment Option</h1>
+        <h3>Select Payment Method</h3>
+   
+    </div>
+    <!-- ORDER DETAILS -->
+    <div class="checkout-order-details">
+        <button class="back-to-cart"><a href="{% url 'cart' %}">&#x2190; Back to Cart</a></button>
+        <hr>
+        <h3>Order Details</h3>
+        <hr>
+        <div class="cart-details">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                    <!-- Dynamic rows -->
+                </tbody>
+            </table>
+            <p style="display:flex; justify-content:flex-end; margin:23px;" id="order-details-total">
+                Total: <strong>Rs0</strong>
+            </p>
         </div>
     </div>
+  
+
 </div>
 
-<div style="text-align: center; margin-top: 2rem;">
-    <button id="make-payment">Make payment</button>
-</div>
-
+<!-- SCRIPT -->
 <script>
-    // Get the order total from Django template
-    var orderTotal = {{order.get_cart_total}};
-    var currentUser = '{{request.user}}';
-    var csrfToken = '{{csrf_token}}';
-    
-    // Wait for DOM to be fully loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        const paymentButton = document.getElementById('make-payment');
-        
-        if (paymentButton) {
-            paymentButton.addEventListener('click', function(e) {
-                e.preventDefault(); // Prevent any default behavior
-                console.log('Payment button clicked'); // Debug log
-                submitFormData();
-            });
+    function getCSRFTToken() {
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            .split('=')[1];
+    }
+
+    function renderCart() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+        const tbody = document.getElementById('tbody');
+        let total = 0;
+        tbody.innerHTML = '';
+
+        if (Object.keys(cart).length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3">Your cart is empty.</td></tr>`;
         } else {
-            console.error('Payment button not found');
-        }
-    });
+            for (let id in cart) {
+                const item = cart[id];
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
 
-    function submitFormData() {
-        console.log('submitFormData called'); // Debug log
-        
-        // Get form element
-        const form = document.getElementById('form');
-        
-        if (!form) {
-            console.error('Form not found');
-            alert('Form not found. Please refresh the page.');
-            return;
-        }
-        
-        let userFormData = {
-            'name': null,
-            'email': null,
-            'total': orderTotal,
-            'address': null,
-            'city': null,
-            'phone': null,
-            'zipcode': null
-        }
-        
-        // If user is authenticated, get their info from the user object
-        if(currentUser != 'AnonymousUser') {
-            userFormData.name = '{{request.user.get_full_name|default:request.user.username}}';
-            userFormData.email = '{{request.user.email}}';
-        } else {
-            // Get form data for anonymous users
-            const nameField = form.querySelector('input[name="name"]');
-            const emailField = form.querySelector('input[name="email"]');
-            
-            if (nameField) userFormData.name = nameField.value;
-            if (emailField) userFormData.email = emailField.value;
-        }
-        
-        // Get shipping information for all users
-        const addressField = form.querySelector('input[name="address"]');
-        const cityField = form.querySelector('input[name="city"]');
-        const phoneField = form.querySelector('input[name="phone"]');
-        const zipcodeField = form.querySelector('input[name="zipcode"]');
-        
-        if (addressField) userFormData.address = addressField.value;
-        if (cityField) userFormData.city = cityField.value;
-        if (phoneField) userFormData.phone = phoneField.value || '';
-        if (zipcodeField) userFormData.zipcode = zipcodeField.value || '';
-        
-        // Basic validation
-        if (!userFormData.name || !userFormData.email || !userFormData.address || !userFormData.city) {
-            alert('Please fill in all required fields (marked with *)');
-            return;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.quantity}</td>
+                        <td>Rs${subtotal}</td>
+                    </tr>
+                `;
+            }
         }
 
-        console.log('Sending data:', userFormData); // Debug log
+        document.getElementById('order-details-total').innerHTML = `Total: <strong>Rs${total}</strong>`;
+    }
 
-        let url = '/process_order/';
-        fetch(url, {
+    // On page load
+    document.addEventListener('DOMContentLoaded', renderCart);
+
+    // Form submission
+    document.getElementById('form-btn').addEventListener('click', function (event) {
+        event.preventDefault();
+        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+        const shipping = {
+            name: document.querySelector('input[name="name"]').value,
+            email: document.querySelector('input[name="email"]').value,
+            address: document.querySelector('input[name="address"]').value,
+            city: document.querySelector('input[name="city"]').value,
+            state: document.querySelector('input[name="state"]').value,
+            zipcode: document.querySelector('input[name="zipcode"]').value,
+            phone: document.querySelector('input[name="phone"]').value,
+        };
+
+        fetch('/checkout/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
+                'X-CSRFToken': getCSRFTToken()
             },
-            body: JSON.stringify({'form': userFormData})
+            body: JSON.stringify({ cart: cart, shipping: shipping })
         })
-        .then((response) => {
-            console.log('Response status:', response.status);
-            return response.json();
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+              localStorage.removeItem('cart');
+              document.querySelector(".payment-option").style.display = "block";
+              document.querySelector(".user-shipping-info").style.display = "none";
+             alert("Order placed successfully!");
+              window.location.href = "/esewa_payment/";
+            } else {
+                alert("Error: " + (data.error || "Order failed."));
+            }
         })
-        .then((data) => {
-            console.log('Success:', data);
-            alert('Transaction completed');
-            window.location.href = "{% url 'store' %}";
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('An error occurred during the transaction: ' + error.message);
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Something went wrong. Try again.");
         });
-    }
+    });
 </script>
+
 {% endblock content %}
