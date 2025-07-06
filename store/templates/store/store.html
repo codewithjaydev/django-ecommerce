@@ -1,122 +1,11 @@
 {% extends 'store/main.html' %}
 {% load static %}
 {% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
 
-<style>
-    .row {
-        display: flex;
-        flex-wrap: wrap;
-        margin: 0 -15px;
-    }
-
-    .col-lg-4 {
-        flex: 0 0 33.333333%;
-        max-width: 33.333333%;
-        padding: 0 15px;
-        box-sizing: border-box;
-    }
-
-    .box-element.product {
-        background-color: #fff;
-        border: 1px solid #1e5631;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        overflow: hidden;
-    }
-
-    .box-element.product:hover {
-        background-color: #f8f9fa;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        transform: translateY(-2px);
-        border-color: #1a4d27;
-    }
-
-    .thumbnail {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border-bottom: 1px solid #1e5631;
-    }
-
-    .product-info {
-        padding: 8px 10px 4px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-
-    .product-title {
-        font-size: 1rem;
-        font-weight: 600;
-        margin-bottom: 4px; 
-        color: #333;
-    }
-
-    .action-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .left-action {
-        flex: 1;
-        padding-right: 8px;
-    }
-
-    .right-group {
-        display: flex;
-        align-items: center;
-        gap: 8px; 
-    }
-
-    .product-price {
-        font-size: 1.1rem;
-        color: #007bff;
-        font-weight: bold;
-    }
-
-    .btn {
-        padding: 6px 8px; 
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-
-    .btn-add-to-cart {
-        background-color: #28a745;
-        color: white;
-        width: 100%;
-        border: 1px solid #1e5631;
-    }
-
-    .btn-add-to-cart:hover {
-        background-color: #218838;
-        border-color: #1a4d27;
-    }
-
-    .btn-view {
-        background-color: #6c757d;
-        color: white;
-        min-width: 55px; 
-    }
-
-    .btn-view:hover {
-        background-color: #5a6268;
-    }
-</style>
-
-<div class="row">
+<div class="product-row">
     {% for product in products %}
-    <div class="col-lg-4">
+    <div class="product-col">
         <div class="box-element product">
             <img class="thumbnail" src="{{product.imageURL}}" alt="image not found">
             <div class="product-info">
@@ -135,12 +24,30 @@
     </div>
     {% endfor %}
 </div>  
-<!-- <script>
+<script>
     document.querySelectorAll('.btn-add-to-cart').forEach(button => {
         button.addEventListener('click', function() {
             
-            alert( ' added to cart successfully!');
+            let msg = document.createElement('div');
+            msg.textContent = 'Added to cart successfully!';
+            msg.style.position = 'fixed';
+            msg.style.top = '30px';
+            msg.style.right = '30px';
+            msg.style.background = '#28a745';
+            msg.style.color = 'white';
+            msg.style.padding = '16px 28px';
+            msg.style.borderRadius = '8px';
+            msg.style.fontSize = '1.1rem';
+            msg.style.boxShadow = '0 4px 16px rgba(40,167,69,0.15)';
+            msg.style.zIndex = 9999;
+            msg.style.opacity = 1;
+            msg.style.transition = 'opacity 1.5s';
+            document.body.appendChild(msg);
+            setTimeout(() => {
+                msg.style.opacity = 0;
+                setTimeout(() => msg.remove(), 5000);
+            }, 2000);
         });
     });
-</script> -->
+</script>
 {% endblock content %}

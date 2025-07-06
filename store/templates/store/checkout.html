@@ -1,331 +1,9 @@
 {% extends 'store/main.html' %}
 {% load static %}
+
 {% block content %}
-<style>
-    /* Checkout Page Styles */
-.checkout-main {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    font-family: 'Arial', sans-serif;
-}
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
 
-/* Shipping Form Styles */
-.user-shipping-info {
-    flex: 1;
-    min-width: 300px;
-    background: #ffffff;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-}
-
-.user-shipping-info h2 {
-    color: #1f2937;
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.user-info {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.user-info input {
-    flex: 1;
-}
-
-.shipping-info {
-    margin-bottom: 1.5rem;
-}
-
-.shipping-info p {
-    color: #374151;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
-}
-
-/* Form Input Styles */
-.user-shipping-info input[type="text"],
-.user-shipping-info input[type="email"] {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 2px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 1rem;
-    box-sizing: border-box;
-}
-
-.user-shipping-info input[type="text"]:focus,
-.user-shipping-info input[type="email"]:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.user-shipping-info input[type="text"]::placeholder,
-.user-shipping-info input[type="email"]::placeholder {
-    color: #9ca3af;
-}
-
-/* HR Styles */
-.user-shipping-info hr {
-    border: none;
-    height: 1px;
-    background: #e5e7eb;
-    margin: 1.5rem 0;
-}
-
-/* Submit Button */
-#form-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-#form-btn:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-}
-
-#form-btn:active {
-    transform: translateY(0);
-}
-
-/* Payment Option Styles */
-.payment-option {
-    flex: 1;
-    min-width: 300px;
-    background: #ffffff;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-}
-
-.payment-option h1 {
-    color: #1f2937;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.payment-option h3 {
-    color: #374151;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-}
-
-/* Order Details Styles */
-.checkout-order-details {
-    flex: 1;
-    min-width: 300px;
-    background: #ffffff;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-}
-
-.back-to-cart {
-    background: #f3f4f6;
-    border: 1px solid #d1d5db;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-bottom: 1rem;
-}
-
-.back-to-cart:hover {
-    background: #e5e7eb;
-}
-
-.back-to-cart a {
-    text-decoration: none;
-    color: #374151;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.checkout-order-details h3 {
-    color: #1f2937;
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.checkout-order-details hr {
-    border: none;
-    height: 1px;
-    background: #e5e7eb;
-    margin: 1rem 0;
-}
-
-/* Table Styles */
-.cart-details table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1.5rem;
-}
-
-.cart-details th {
-    background: #f9fafb;
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-    color: #374151;
-    border-bottom: 2px solid #e5e7eb;
-}
-
-.cart-details td {
-    padding: 1rem;
-    border-bottom: 1px solid #f3f4f6;
-    color: #6b7280;
-}
-
-.cart-details tbody tr:hover {
-    background: #f9fafb;
-}
-
-/* Total Styles */
-#order-details-total {
-    font-size: 1.25rem;
-    color: #1f2937;
-    padding: 1rem;
-    background: #f9fafb;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-}
-
-#order-details-total strong {
-    color: #059669;
-    font-size: 1.5rem;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .checkout-main {
-        flex-direction: column;
-        padding: 1rem;
-        gap: 1rem;
-    }
-    
-    .user-info {
-        flex-direction: column;
-        gap: 0;
-    }
-    
-    .user-shipping-info,
-    .payment-option,
-    .checkout-order-details {
-        padding: 1.5rem;
-    }
-    
-    .cart-details table {
-        font-size: 0.9rem;
-    }
-    
-    .cart-details th,
-    .cart-details td {
-        padding: 0.75rem 0.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .checkout-main {
-        padding: 0.5rem;
-    }
-    
-    .user-shipping-info,
-    .payment-option,
-    .checkout-order-details {
-        padding: 1rem;
-    }
-    
-    .cart-details table {
-        font-size: 0.8rem;
-    }
-    
-    .cart-details th,
-    .cart-details td {
-        padding: 0.5rem 0.25rem;
-    }
-    
-    #order-details-total {
-        font-size: 1rem;
-    }
-    
-    #order-details-total strong {
-        font-size: 1.25rem;
-    }
-}
-
-/* Animation for smooth transitions */
-.user-shipping-info,
-.payment-option,
-.checkout-order-details {
-    transition: all 0.3s ease;
-}
-
-/* Focus states for accessibility */
-.back-to-cart:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-}
-
-/* Loading state for form submission */
-#form-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Error state for inputs */
-.user-shipping-info input.error {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-/* Success state */
-.success-message {
-    background: #dcfce7;
-    color: #166534;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid #bbf7d0;
-    margin-bottom: 1rem;
-}
-
-/* Empty cart state */
-.cart-details tbody tr td[colspan="3"] {
-    text-align: center;
-    color: #9ca3af;
-    font-style: italic;
-    padding: 2rem;
-}
-</style>
 <div class="checkout-main">
 
     <!-- SHIPPING FORM -->
@@ -337,7 +15,7 @@
             </div>
             <hr>
 
-            <div class="shipping-info">
+            <div class="shipping-info" id="shipping-info">
                 <p>Shipping Information:</p>
                 <hr>
                 <input type="text" name="address" placeholder="Address.." required>
@@ -351,11 +29,14 @@
         </form>
     </div>
 
-    <div class="payment-option" style="display: none;">
+    <div class="payment-option hidden" id="payment-info" style="display: none;">
         <h1>Payment Option</h1>
         <h3>Select Payment Method</h3>
-   
+        <button id="esewa-btn" class="payment-btn">
+            <img src="{% static 'css/images/eSewa.png' %}" alt="Pay with eSewa">
+        </button>
     </div>
+
     <!-- ORDER DETAILS -->
     <div class="checkout-order-details">
         <button class="back-to-cart"><a href="{% url 'cart' %}">&#x2190; Back to Cart</a></button>
@@ -372,95 +53,38 @@
                     </tr>
                 </thead>
                 <tbody id="tbody">
-                    <!-- Dynamic rows -->
+                    {% if items %}
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>Rs {{ item.get_total }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="3">Your cart is empty.</td></tr>
+                    {% endif %}
                 </tbody>
             </table>
-            <p style="display:flex; justify-content:flex-end; margin:23px;" id="order-details-total">
-                Total: <strong>Rs0</strong>
+            <p style="display: flex; justify-content: flex-end; margin: 23px;" id="order-details-total">
+                Total: <strong>Rs {{ order.get_cart_total|default:0 }}</strong>
             </p>
         </div>
     </div>
-  
-
 </div>
 
-<!-- SCRIPT -->
-<script>
-    function getCSRFTToken() {
-        return document.cookie.split('; ')
-            .find(row => row.startsWith('csrftoken='))
-            .split('=')[1];
+<script type="text/javascript">
+    let shipping = '{{ order.shipping }}';
+    if (shipping == 'False') {
+        document.getElementById('shipping-info').innerHTML = '';
     }
 
-    function renderCart() {
-        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
-        const tbody = document.getElementById('tbody');
-        let total = 0;
-        tbody.innerHTML = '';
-
-        if (Object.keys(cart).length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3">Your cart is empty.</td></tr>`;
-        } else {
-            for (let id in cart) {
-                const item = cart[id];
-                const subtotal = item.price * item.quantity;
-                total += subtotal;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${item.name}</td>
-                        <td>${item.quantity}</td>
-                        <td>Rs${subtotal}</td>
-                    </tr>
-                `;
-            }
-        }
-
-        document.getElementById('order-details-total').innerHTML = `Total: <strong>Rs${total}</strong>`;
-    }
-
-    // On page load
-    document.addEventListener('DOMContentLoaded', renderCart);
-
-    // Form submission
-    document.getElementById('form-btn').addEventListener('click', function (event) {
-        event.preventDefault();
-        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
-        const shipping = {
-            name: document.querySelector('input[name="name"]').value,
-            email: document.querySelector('input[name="email"]').value,
-            address: document.querySelector('input[name="address"]').value,
-            city: document.querySelector('input[name="city"]').value,
-            state: document.querySelector('input[name="state"]').value,
-            zipcode: document.querySelector('input[name="zipcode"]').value,
-            phone: document.querySelector('input[name="phone"]').value,
-        };
-
-        fetch('/checkout/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFTToken()
-            },
-            body: JSON.stringify({ cart: cart, shipping: shipping })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-              localStorage.removeItem('cart');
-              document.querySelector(".payment-option").style.display = "block";
-              document.querySelector(".user-shipping-info").style.display = "none";
-             alert("Order placed successfully!");
-              window.location.href = "/esewa_payment/";
-            } else {
-                alert("Error: " + (data.error || "Order failed."));
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("Something went wrong. Try again.");
-        });
+    let form = document.getElementById('form');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        console.log('Form submitted..');
+        document.getElementById('form-btn').style.display = 'none';
+        document.getElementById('payment-info').style.display = 'block';
     });
 </script>
-
 {% endblock content %}
