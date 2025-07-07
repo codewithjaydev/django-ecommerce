@@ -2,8 +2,21 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import json
 import datetime
+from django.contrib.auth.decorators import login_required
 from .models import *
 # Create your views here.
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # Log the user in after successful registration
+            return redirect('home')  # Redirect to the home page or any other page
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
 def store(request):
     if request.user.is_authenticated:
         customer = request.user.customer
@@ -72,4 +85,6 @@ def updateItem(request):
     if orderItem.quantity <=0:
         orderItem.delete()
     return JsonResponse('Item was added', safe=False)
-
+@login_required
+def profile(request):
+    return render(request, 'store/user/profile.html')

@@ -9,58 +9,64 @@
     <title>Ecommerce</title>
 
     <script type="text/javascript">
-        let user= '{{request.user}}'
+        let user = '{{ request.user|escapejs }}';
 
-        function getToken(name){
-            let cookieValue= null;
-            if(document.cookie && document.cookie !==''){
-                let cookies = document.cookie.split(';')
-                for(let i=0; i < cookies.length; i++){
-                    let cookie=cookies[i].trim();
-                    //does this cookie string begin with name we want?
-                    if(cookie.substring(0, name.length+1)===(name +'=')){
+        function getToken(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                let cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    let cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
                     }
-
                 }
             }
             return cookieValue;
         }
-        let csrftoken= getToken('csrftoken');
+
+        let csrftoken = getToken('csrftoken');
     </script>
 </head>
 <body>
- <nav class="navbar">
-        <div class="nav-left">
-            <a href="/" class="nav-item">Tarkaribazzar</a>
-            <a href="/" class="nav-item">Store</a>
-        </div>
-        
-        <div class="nav-right">
-            <button class="login-btn">Login</button>
-            
-            <div class="cart-container">
 
-                <img id="cart-img" src="{% static 'css/images/cart.png' %}" alt="Shopping Cart" class="cart-icon"
-                     style="cursor:pointer;"
-                     onclick="window.location.href='{% url 'cart' %}'"
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                
-                <svg class="cart-icon" viewBox="0 0 24 24" style="display: none; fill: rgb(153, 18, 18);">
-                    <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                </svg>
-                
-                <span class="cart-badge">{{cartItems}}</span>
-            </div>
-        </div>
-    </nav>
-
-    <div class="main-content">
-        {% block content %} 
-        {% endblock content %}
+<nav class="navbar">
+    <div class="nav-left">
+        <a href="/" class="nav-item">Tarkaribazzar</a>
+        <a href="/" class="nav-item">Store</a>
     </div>
 
-<script type="text/javascript" src="{% static 'css/js/cart.js' %}"></script>
+    <div class="nav-right">
+        {% if user.is_authenticated %}
+            <span class="nav-item">Hi, {{ user.username }}</span>
+            <a href="{% url 'logout' %}" class="nav-item">Logout</a>
+            <a href="{% url 'profile' %}" class="nav-item">Profile</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="nav-item">Login</a>
+            <a href="{% url 'register' %}" class="nav-item">Register</a>
+        {% endif %}
+
+        <div class="cart-container">
+            <img id="cart-img" src="{% static 'css/images/cart.png' %}" alt="Shopping Cart" class="cart-icon"
+                 style="cursor:pointer;"
+                 onclick="window.location.href='{% url 'cart' %}'"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+
+            <svg class="cart-icon" viewBox="0 0 24 24" style="display: none; fill: rgb(153, 18, 18);">
+                <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>
+
+            <span class="cart-badge">{{ cartItems }}</span>
+        </div>
+    </div>
+</nav>
+
+<div class="main-content">
+    {% block content %}
+    {% endblock content %}
+</div>
+
+<script defer src="{% static 'css/js/cart.js' %}"></script>
 </body>
 </html>
