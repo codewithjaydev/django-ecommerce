@@ -2,6 +2,22 @@
 {% load static %}
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<style>
+.btn-login-required {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-login-required:hover {
+    background-color: #5a6268;
+}
+</style>
 
 <div class="product-row">
     {% for product in products %}
@@ -12,7 +28,11 @@
                 <h3 class="product-title">{{ product.name }}</h3>
                 <div class="action-container">
                     <div class="left-action">
-                        <button data-product={{product.id}} data-action="add" class="btn btn-add-to-cart update-cart">Add to Cart</button>
+                        {% if user.is_authenticated %}
+                            <button data-product={{product.id}} data-action="add" class="btn btn-add-to-cart update-cart">Add to Cart</button>
+                        {% else %}
+                            <button onclick="window.location.href='{% url 'login' %}'" class="btn btn-login-required">Add to Cart</button>
+                        {% endif %}
                     </div>
                     <div class="right-group">
                         <button class="btn btn-view">View</button>
@@ -25,6 +45,7 @@
     {% endfor %}
 </div>  
 <script>
+    {% if user.is_authenticated %}
     document.querySelectorAll('.btn-add-to-cart').forEach(button => {
         button.addEventListener('click', function() {
             
@@ -49,5 +70,6 @@
             }, 2000);
         });
     });
+    {% endif %}
 </script>
 {% endblock content %}

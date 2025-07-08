@@ -33,6 +33,20 @@ class Order(models.Model):
     date_orderd=models.DateTimeField(auto_now_add=True)
     complete=models.BooleanField(default=False,null=True,blank=False)
     transaction_id= models.CharField(max_length=100, null=True)
+    
+    # eSewa payment fields
+    esewa_payment_id = models.CharField(max_length=100, null=True, blank=True)
+    esewa_merchant_id = models.CharField(max_length=100, null=True, blank=True)
+    payment_status = models.CharField(max_length=20, default='pending', choices=[
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ])
+    payment_method = models.CharField(max_length=20, default='esewa', choices=[
+        ('esewa', 'eSewa'),
+        ('cod', 'Cash on Delivery'),
+    ])
 
     def __str__(self):
         return str(self.id)
@@ -86,4 +100,4 @@ class ShippingAddress(models.Model):
 @receiver(post_save, sender=User)
 def create_customer(sender, instance, created, **kwargs):
     if created:
-        Customer.objects.create(user=instance)
+        Customer.objects.get_or_create(user=instance)

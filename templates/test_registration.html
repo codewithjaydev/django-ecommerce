@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Registration</title>
+</head>
+<body>
+    <h1>Test Registration Form</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Register</button>
+    </form>
+    
+    <h2>Form Debug Info:</h2>
+    <p>Form fields: {{ form.fields }}</p>
+    <p>Form errors: {{ form.errors }}</p>
+</body>
+</html> 

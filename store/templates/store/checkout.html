@@ -3,6 +3,7 @@
 
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/payment.css' %}">
 
 <div class="checkout-main">
 
@@ -32,9 +33,25 @@
     <div class="payment-option hidden" id="payment-info" style="display: none;">
         <h1>Payment Option</h1>
         <h3>Select Payment Method</h3>
-        <button id="esewa-btn" class="payment-btn">
-            <img src="{% static 'css/images/eSewa.png' %}" alt="Pay with eSewa">
-        </button>
+        
+        <!-- eSewa Payment Button -->
+        <div class="payment-method">
+            <h4>Pay with eSewa</h4>
+            <p>Secure payment through eSewa</p>
+            <button id="esewa-btn" class="payment-btn esewa-payment-btn" onclick="payWithEsewa()">
+                <img src="{% static 'css/images/eSewa.png' %}" alt="Pay with eSewa">
+                <span>Pay Rs {{ order.get_cart_total|default:0 }}</span>
+            </button>
+        </div>
+        
+        <!-- Cash on Delivery Option -->
+        <div class="payment-method">
+            <h4>Cash on Delivery</h4>
+            <p>Pay when you receive your order</p>
+            <button class="payment-btn cod-payment-btn" onclick="payWithCOD()">
+                <span>Pay on Delivery</span>
+            </button>
+        </div>
     </div>
 
     <!-- ORDER DETAILS -->
@@ -86,5 +103,156 @@
         document.getElementById('form-btn').style.display = 'none';
         document.getElementById('payment-info').style.display = 'block';
     });
+    
+    // eSewa Payment Function
+    function payWithEsewa() {
+        // Show loading state
+        const esewaBtn = document.getElementById('esewa-btn');
+        const originalText = esewaBtn.innerHTML;
+        esewaBtn.innerHTML = '<span>Processing...</span>';
+        esewaBtn.disabled = true;
+        
+        // Redirect to payment initiation
+        window.location.href = '{% url "initiate_payment" %}';
+    }
+    
+
+    
+    // Cash on Delivery Function
+    function payWithCOD() {
+        showCustomConfirm(
+            'Are you sure you want to place this order with Cash on Delivery?',
+            'Yes',
+            'Cancel',
+            function() {
+                // Show loading state
+                const codBtn = document.querySelector('.cod-payment-btn');
+                const originalText = codBtn.innerHTML;
+                codBtn.innerHTML = '<span>Processing...</span>';
+                codBtn.disabled = true;
+                
+                // Place order with COD
+                placeOrderWithCOD();
+            }
+        );
+    }
+    
+    // Custom confirmation dialog
+    function showCustomConfirm(message, yesText, cancelText, onYes) {
+        // Create modal overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+        
+        // Create modal dialog
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        `;
+        
+        // Add message
+        const messageEl = document.createElement('p');
+        messageEl.textContent = message;
+        messageEl.style.cssText = `
+            margin: 0 0 25px 0;
+            font-size: 16px;
+            color: #333;
+            line-height: 1.5;
+        `;
+        modal.appendChild(messageEl);
+        
+        // Add buttons container
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.style.cssText = `
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        `;
+        
+        // Create Yes button
+        const yesBtn = document.createElement('button');
+        yesBtn.textContent = yesText;
+        yesBtn.style.cssText = `
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        `;
+        yesBtn.onmouseover = () => yesBtn.style.background = '#218838';
+        yesBtn.onmouseout = () => yesBtn.style.background = '#28a745';
+        
+        // Create Cancel button
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = cancelText;
+        cancelBtn.style.cssText = `
+            padding: 12px 24px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        `;
+        cancelBtn.onmouseover = () => cancelBtn.style.background = '#5a6268';
+        cancelBtn.onmouseout = () => cancelBtn.style.background = '#6c757d';
+        
+        // Add event listeners
+        yesBtn.onclick = function() {
+            document.body.removeChild(overlay);
+            onYes();
+        };
+        
+        cancelBtn.onclick = function() {
+            document.body.removeChild(overlay);
+        };
+        
+        // Add buttons to container
+        buttonsContainer.appendChild(yesBtn);
+        buttonsContainer.appendChild(cancelBtn);
+        modal.appendChild(buttonsContainer);
+        
+        // Add modal to overlay
+        overlay.appendChild(modal);
+        
+        // Add overlay to body
+        document.body.appendChild(overlay);
+        
+        // Close on overlay click
+        overlay.onclick = function(e) {
+            if (e.target === overlay) {
+                document.body.removeChild(overlay);
+            }
+        };
+    }
+    
+    function placeOrderWithCOD() {
+        // You can implement COD order placement here
+        // For now, we'll just show a success message
+        alert('Order placed successfully with Cash on Delivery!');
+        window.location.href = '{% url "store" %}';
+    }
 </script>
 {% endblock content %}

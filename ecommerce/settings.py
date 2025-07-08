@@ -94,18 +94,18 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
 ]
 
 
@@ -141,6 +141,17 @@ STATICFILES_DIRS = [
 MEDIA_URL='/images/'
 MEDIA_ROOT= os.path.join(BASE_DIR,'static/css/images')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Authentication settings
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+# eSewa Payment Gateway Settings
+ESEWA_MERCHANT_ID = 'EPAYTEST'  # Change to your actual merchant ID for production
+ESEWA_SUCCESS_URL = 'http://127.0.0.1:8000/payment/success/'
+ESEWA_FAILURE_URL = 'http://127.0.0.1:8000/payment/failure/'
+ESEWA_URL = 'https://esewa.com.np/epay/main'
+ESEWA_VERIFY_URL = 'https://esewa.com.np/epay/transrec'
 
 
 
