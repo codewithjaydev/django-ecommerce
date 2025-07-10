@@ -48,9 +48,12 @@
         <div class="payment-method">
             <h4>Cash on Delivery</h4>
             <p>Pay when you receive your order</p>
-            <button class="payment-btn cod-payment-btn" onclick="payWithCOD()">
-                <span>Pay on Delivery</span>
-            </button>
+            <form method="post" action="{% url 'cod_order' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="payment-btn cod-payment-btn">
+                    <span>Pay on Delivery</span>
+                </button>
+            </form>
         </div>
     </div>
 
@@ -249,8 +252,6 @@
     }
     
     function placeOrderWithCOD() {
-        // You can implement COD order placement here
-        // For now, we'll just show a success message
         alert('Order placed successfully with Cash on Delivery!');
         window.location.href = '{% url "store" %}';
     }

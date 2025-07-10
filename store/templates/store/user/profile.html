@@ -1,6 +1,61 @@
 {% extends 'store/main.html' %}
+
 {% block content %}
-  <h1>Profile</h1>
-  <p>Username: {{ user.username }}</p>
-  <p>Email: {{ user.email }}</p>
+<div class="profile-orders">
+  <h1>Profile Orders</h1>
+  
+  <div class="profile-header">
+    <div class="username-display">Username: {{ user.username }}</div>
+    
+    {% if orders %}
+      <form method="post" action="{% url 'clear_orders' %}" class="clear-orders-form">
+        {% csrf_token %}
+        <button type="submit" class="clear-orders-btn">Clear Orders</button>
+      </form>
+    {% endif %}
+  </div>
+  
+  {% if orders %}
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Date</th>
+          <th>Payment Method</th>
+          <th>Status</th>
+          <th>Transaction ID</th>
+          <th>Order Items</th>
+          <th>Total Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td>{{ order.id }}</td>
+          <td>{{ order.date_orderd|date:'Y-m-d' }}</td>
+          <td>{{ order.get_payment_method_display }}</td>
+          <td>{{ order.get_payment_status_display }}</td>
+          <td>{{ order.transaction_id|default:'-' }}</td>
+          <td>
+            <ul class="order-items-list">
+              {% for item in order.orderitem_set.all %}
+                {% if item.product and item.quantity > 0 %}
+                  <li>{{ item.product.name }} (x{{ item.quantity }}) - {{ item.get_total }}</li>
+                {% endif %}
+              {% empty %}
+                <li>No items</li>
+              {% endfor %}
+            </ul>
+          </td>
+          <td>{{ order.get_cart_total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="no-orders-message">
+      <p>No orders found.</p>
+    </div>
+  {% endif %}
+</div>
 {% endblock content %}

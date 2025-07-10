@@ -1,354 +1,250 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 import json
-import datetime
+import requests
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django import forms
-from django.contrib.auth.models import User
-from .models import *
-# Create your views here.
+from .models import Customer, Order, OrderItem, Product
+from .esewa_utils import ESewaPayment
+
+# ---------- Custom User Form ----------
+
 class CustomUserCreationForm(UserCreationForm):
-    """Custom user creation form with minimal password validation"""
-    
+    """User form without default password validation hints."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Remove all password validators
-        self.fields['password1'].validators = []
-        self.fields['password2'].validators = []
-        
-        # Clear help text
+        for field in ['password1', 'password2']:
+            self.fields[field].validators = []
+            self.fields[field].help_text = ''
         self.fields['username'].help_text = ''
-        self.fields['password1'].help_text = ''
-        self.fields['password2'].help_text = ''
-        
-        # Update labels
         self.fields['password1'].label = 'Password'
         self.fields['password2'].label = 'Confirm Password'
-    
+
     def clean_password1(self):
-        password1 = self.cleaned_data.get('password1')
-        if not password1:
+        pw = self.cleaned_data.get('password1')
+        if not pw:
             raise forms.ValidationError('Password cannot be blank.')
-        return password1
-    
+        return pw
+
     def clean_password2(self):
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
-        if password1 and password2 and password1 != password2:
+        pw1 = self.cleaned_data.get('password1')
+        pw2 = self.cleaned_data.get('password2')
+        if pw1 and pw2 and pw1 != pw2:
             raise forms.ValidationError('Passwords do not match.')
-        return password2
+        return pw2
 
-
+# ---------- Authentication Views ----------
 
 def auth_view(request):
     login_form = AuthenticationForm()
     register_form = CustomUserCreationForm()
-    
     if request.method == 'POST':
         if 'login' in request.POST:
             login_form = AuthenticationForm(request, data=request.POST)
             if login_form.is_valid():
-                username = login_form.cleaned_data.get('username')
-                password = login_form.cleaned_data.get('password')
-                user = authenticate(username=username, password=password)
-                if user is not None:
+                user = authenticate(
+                    username=login_form.cleaned_data['username'],
+                    password=login_form.cleaned_data['password']
+                )
+                if user:
                     login(request, user)
                     return redirect('store')
-                else:
-                    messages.error(request, 'Invalid username or password.')
-        
+                messages.error(request, 'Invalid credentials.')
         elif 'register' in request.POST:
             register_form = CustomUserCreationForm(request.POST)
             if register_form.is_valid():
-                try:
-                    user = register_form.save()
-                    # Ensure customer is created
-                    from .models import Customer
-                    Customer.objects.get_or_create(user=user)
-                    login(request, user)
-                    messages.success(request, 'User registered successfully!')
-                    return redirect('store')
-                except Exception as e:
-                    print("Error creating user:", e)
-                    messages.error(request, 'Error creating account. Please try again.')
+                user = register_form.save()
+                Customer.objects.get_or_create(user=user)
+                login(request, user)
+                messages.success(request, 'Account created!')
+                return redirect('store')
             else:
-                print("Registration form errors:", register_form.errors)
-    
-    context = {
-        'login_form': login_form,
-        'register_form': register_form,
-    }
-    return render(request, 'registration/login.html', context)
+                print("Registration errors:", register_form.errors)
+    return render(request, 'registration/login.html', {
+        'login_form': login_form, 'register_form': register_form
+    })
 
 def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            # Ensure customer is created
-            from .models import Customer
-            Customer.objects.get_or_create(user=user)
-            login(request, user)  # Log the user in after successful registration
-            messages.success(request, 'User registered successfully!')
-            return redirect('store')  # Redirect to the store page
-        else:
-            # If registration fails, redirect to login page with error
-            return redirect('login')
-    else:
-        form = CustomUserCreationForm()
+    form = CustomUserCreationForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = form.save()
+        Customer.objects.get_or_create(user=user)
+        login(request, user)
+        messages.success(request, 'User registered!')
+        return redirect('store')
     return render(request, 'store/register.html', {'form': form})
+
+@login_required
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'Logged out.')
+    return redirect('store')
+
+# ---------- Store & Cart Views ----------
 
 def store(request):
     if request.user.is_authenticated:
-        # Ensure customer exists
-        from .models import Customer
-        customer, created = Customer.objects.get_or_create(user=request.user)
-        order, created = Order.objects.get_or_create(customer=customer,complete=False)
-        items=order.orderitem_set.all()
-        cartItems = order.get_cart_items
+        customer, _ = Customer.objects.get_or_create(user=request.user)
+        order, _ = Order.objects.get_or_create(customer=customer, complete=False)
+        cartItems = order.get_cart_items if hasattr(order, 'get_cart_items') else 0
     else:
-        items=[]
-        order={'get_cart_total':0, 'get_cart_items':0,'shipping':False}
-        cartItems=order['get_cart_items']
-
-    products=Product.objects.all()
-    context={'products':products, 'cartItems':cartItems}
-    return render(request, 'store/store.html',context)
+        cartItems = 0
+    products = Product.objects.all()
+    return render(request, 'store/store.html', {'products': products, 'cartItems': cartItems})
 
 @login_required
 def cart(request):
-    # Ensure customer exists
-    from .models import Customer
-    customer, created = Customer.objects.get_or_create(user=request.user)
-    order, created = Order.objects.get_or_create(customer=customer,complete=False)
-    items=order.orderitem_set.all()
-    cartItems = order.get_cart_items
-
-    context={'items':items, 'order':order,'cartItems':cartItems}
-    return render(request, 'store/cart.html',context)
+    customer, _ = Customer.objects.get_or_create(user=request.user)
+    order, _ = Order.objects.get_or_create(customer=customer, complete=False)
+    items = [i for i in order.orderitem_set.all() if i.product]
+    return render(request, 'store/cart.html', {
+        'items': items, 'order': order, 'cartItems': order.get_cart_items
+    })
 
 @login_required
 def checkout(request):
-    # Ensure customer exists
-    from .models import Customer
-    customer, created = Customer.objects.get_or_create(user=request.user)
-    order, created = Order.objects.get_or_create(customer=customer,complete=False)
-    items=order.orderitem_set.all()
-    cartItems = order.get_cart_items
-
-    context={'items':items, 'order':order,'cartItems':cartItems}
-    return render(request, 'store/checkout.html', context)
-
+    customer, _ = Customer.objects.get_or_create(user=request.user)
+    order, _ = Order.objects.get_or_create(customer=customer, complete=False)
+    items = [i for i in order.orderitem_set.all() if i.product]
+    return render(request, 'store/checkout.html', {
+        'items': items, 'order': order, 'cartItems': order.get_cart_items
+    })
 
 @login_required
 def updateItem(request):
-    data= json.loads(request.body)
-    productId= data['productId']
-    action=data['action']
-
-    print('productId:',productId)
-    print('Action:', action)
-
-    # Ensure customer exists
-    from .models import Customer
-    customer, created = Customer.objects.get_or_create(user=request.user)
-    product= Product.objects.get(id=productId)
-    order, created = Order.objects.get_or_create(customer=customer,complete=False)
-    orderItem, created = OrderItem.objects.get_or_create(order=order, product=product)
-
-    if action=='add':
-        orderItem.quantity=(orderItem.quantity + 1)
-    elif action== 'remove':
-        orderItem.quantity =(orderItem.quantity - 1)    
+    data = json.loads(request.body)
+    product = Product.objects.get(id=data['productId'])
+    customer, _ = Customer.objects.get_or_create(user=request.user)
+    order, _ = Order.objects.get_or_create(customer=customer, complete=False)
+    orderItem, _ = OrderItem.objects.get_or_create(order=order, product=product)
     
+    if data['action'] == 'add':
+        orderItem.quantity += 1
+    elif data['action'] == 'remove':
+        orderItem.quantity -= 1
 
     orderItem.save()
-    if orderItem.quantity <=0:
+    if orderItem.quantity <= 0:
         orderItem.delete()
-    return JsonResponse('Item was added', safe=False)
+    
+    return JsonResponse('Cart updated', safe=False)
+
 @login_required
 def profile(request):
-    return render(request, 'store/user/profile.html')
+    customer, _ = Customer.objects.get_or_create(user=request.user)
+    orders = Order.objects.filter(customer=customer, complete=True).order_by('-date_orderd').prefetch_related('orderitem_set__product')
+    return render(request, 'store/user/profile.html', {'orders': orders})
 
-def logout_view(request):
-    logout(request)
-    messages.success(request, 'You have been successfully logged out.')
-    return redirect('store')
+# ---------- eSewa Payment Flow ----------
 
-def test_registration(request):
-    """Test view to debug registration issues"""
-    if request.method == 'POST':
-        print("Test registration POST data:", request.POST)
-        # Try with regular UserCreationForm first
-        form = UserCreationForm(request.POST)
-        print("Regular form is valid:", form.is_valid())
-        if form.is_valid():
-            print("Regular form is valid, saving user...")
-            user = form.save()
-            print("User saved:", user.username)
-            return JsonResponse({'success': True, 'username': user.username})
-        else:
-            print("Regular form errors:", form.errors)
-            # Try with custom form
-            custom_form = CustomUserCreationForm(request.POST)
-            print("Custom form is valid:", custom_form.is_valid())
-            if custom_form.is_valid():
-                print("Custom form is valid, saving user...")
-                user = custom_form.save()
-                print("User saved:", user.username)
-                return JsonResponse({'success': True, 'username': user.username})
-            else:
-                print("Custom form errors:", custom_form.errors)
-                return JsonResponse({'success': False, 'errors': custom_form.errors})
-    else:
-        form = CustomUserCreationForm()
-        return render(request, 'test_registration.html', {'form': form})
-
-# eSewa Payment Views
 @login_required
 def initiate_payment(request):
-    """Initiate eSewa payment"""
     try:
-        # Get customer and order
-        from .models import Customer
-        customer, created = Customer.objects.get_or_create(user=request.user)
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        
+        customer, _ = Customer.objects.get_or_create(user=request.user)
+        order, _ = Order.objects.get_or_create(customer=customer, complete=False)
         if order.get_cart_items == 0:
             messages.error(request, 'Your cart is empty.')
             return redirect('cart')
-        
 
-        
-        # Initialize eSewa payment
-        from .esewa_utils import ESewaPayment
         esewa = ESewaPayment()
-        
-        # Generate payment data
         payment_data, transaction_id = esewa.generate_payment_data(order, request)
-        
-        # Update order with transaction ID
         order.transaction_id = transaction_id
         order.payment_method = 'esewa'
         order.save()
-        
-        # Get payment URL
+
         payment_url = esewa.get_payment_url(payment_data)
-        
-        # Check if eSewa service is available (basic check)
+
         try:
-            import requests
-            response = requests.get('https://esewa.com.np', timeout=5)
-            if response.status_code != 200:
-                messages.warning(request, 'eSewa service may be temporarily unavailable. Please try again later.')
-        except:
-            messages.warning(request, 'eSewa service is currently unavailable. Please try again later.')
-        
+            resp = requests.get('https://esewa.com.np', timeout=5)
+            if resp.status_code != 200:
+                messages.warning(request, 'eSewa seems down.')
+        except requests.RequestException:
+            messages.warning(request, 'Cannot reach eSewa now.')
+
         return redirect(payment_url)
-        
+
     except Exception as e:
-        messages.error(request, f'Error initiating payment: {str(e)}')
+        messages.error(request, f'Error initiating payment: {e}')
         return redirect('checkout')
-
-
 
 @login_required
 def payment_success(request):
-    """Handle successful payment"""
-    try:
-        # Get parameters from eSewa
-        oid = request.GET.get('oid')  # Order ID (transaction ID)
-        amt = request.GET.get('amt')  # Amount
-        refId = request.GET.get('refId')  # Reference ID from eSewa
-        
-        if not all([oid, amt, refId]):
-            messages.error(request, 'Invalid payment response from eSewa.')
-            return redirect('checkout')
-        
-        # Get order
-        from .models import Customer
-        customer, created = Customer.objects.get_or_create(user=request.user)
-        order = Order.objects.filter(customer=customer, transaction_id=oid, complete=False).first()
-        
-        if not order:
-            messages.error(request, 'Order not found.')
-            return redirect('checkout')
-        
-        # Verify payment with eSewa
-        from .esewa_utils import ESewaPayment
-        esewa = ESewaPayment()
-        
-        is_verified, message = esewa.verify_payment(oid, amt, refId)
-        
-        if is_verified:
-            # Process successful payment
-            success, msg = esewa.process_successful_payment(order, refId, oid)
-            if success:
-                messages.success(request, 'Payment successful! Your order has been placed.')
-                return redirect('store')
-            else:
-                messages.error(request, f'Error processing payment: {msg}')
-                return redirect('checkout')
-        else:
-            messages.error(request, f'Payment verification failed: {message}')
-            return redirect('checkout')
-            
-    except Exception as e:
-        messages.error(request, f'Error processing payment success: {str(e)}')
+    oid = request.GET.get('oid')
+    amt = request.GET.get('amt')
+    refId = request.GET.get('refId')
+    if not all([oid, amt, refId]):
+        messages.error(request, 'Invalid payment callback.')
         return redirect('checkout')
+
+    customer, _ = Customer.objects.get_or_create(user=request.user)
+    order = get_object_or_404(Order, customer=customer, transaction_id=oid, complete=False)
+    esewa = ESewaPayment()
+    verified, msg = esewa.verify_payment(oid, amt, refId)
+
+    if verified:
+        if float(amt) != float(order.get_cart_total()):
+            messages.error(request, 'Payment amount mismatch; please contact support.')
+            return redirect('checkout')
+
+        success, process_msg = esewa.process_successful_payment(order, refId, oid)
+        if success:
+            order.complete = True
+            order.save()
+            messages.success(request, 'Payment successful!')
+            return redirect('store')
+        messages.error(request, f'Post-verification error: {process_msg}')
+    else:
+        messages.error(request, f'Verification failed: {msg}')
+    return redirect('checkout')
 
 @login_required
 def payment_failure(request):
-    """Handle failed payment"""
-    try:
-        # Get parameters from eSewa
-        oid = request.GET.get('oid')  # Order ID (transaction ID)
-        amt = request.GET.get('amt')  # Amount
-        
-        if oid:
-            # Get order
-            from .models import Customer
-            customer, created = Customer.objects.get_or_create(user=request.user)
-            order = Order.objects.filter(customer=customer, transaction_id=oid, complete=False).first()
-            
-            if order:
-                # Process failed payment
-                from .esewa_utils import ESewaPayment
-                esewa = ESewaPayment()
-                esewa.process_failed_payment(order, 'Payment failed by user')
-        
-        messages.error(request, 'Payment was cancelled or failed. Please try again.')
-        return redirect('checkout')
-        
-    except Exception as e:
-        messages.error(request, f'Error processing payment failure: {str(e)}')
-        return redirect('checkout')
+    oid = request.GET.get('oid')
+    if oid:
+        customer, _ = Customer.objects.get_or_create(user=request.user)
+        order = Order.objects.filter(customer=customer, transaction_id=oid, complete=False).first()
+        if order:
+            ESewaPayment().process_failed_payment(order, 'Failed/cancelled by user')
+    messages.error(request, 'Payment cancelled or failed.')
+    return redirect('checkout')
 
 @login_required
 def payment_cancel(request):
-    """Handle cancelled payment"""
-    messages.warning(request, 'Payment was cancelled. You can try again.')
+    messages.warning(request, 'Payment was cancelled.')
     return redirect('checkout')
 
 @login_required
 def payment_status(request):
-    """Show payment status page"""
     status = request.GET.get('status', 'unknown')
     error_message = request.GET.get('error', '')
-    
-    # Get order if available
     order = None
     if request.user.is_authenticated:
-        from .models import Customer
-        customer, created = Customer.objects.get_or_create(user=request.user)
+        customer, _ = Customer.objects.get_or_create(user=request.user)
         order = Order.objects.filter(customer=customer, complete=False).first()
-    
-    context = {
-        'status': status,
-        'error_message': error_message,
-        'order': order,
-    }
-    return render(request, 'store/payment_status.html', context)
+    return render(request, 'store/payment_status.html', {
+        'status': status, 'error_message': error_message, 'order': order
+    })
+
+@login_required
+def cod_order(request):
+    customer, _ = Customer.objects.get_or_create(user=request.user)
+    order, _ = Order.objects.get_or_create(customer=customer, complete=False)
+    if order.get_cart_items == 0:
+        messages.error(request, 'Your cart is empty.')
+        return redirect('cart')
+    order.payment_method = 'cod'
+    order.complete = True
+    order.save()
+    messages.success(request, 'Order placed with Cash on Delivery!')
+    return redirect('store')
+
+@login_required
+def clear_orders(request):
+    if request.method == 'POST':
+        customer, _ = Customer.objects.get_or_create(user=request.user)
+        Order.objects.filter(customer=customer, complete=True).delete()
+        messages.success(request, 'All your completed orders have been cleared!')
+    return redirect('profile')

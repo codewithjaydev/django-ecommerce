@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 # Create your models here.
 class Customer(models.Model):
@@ -10,8 +11,7 @@ class Customer(models.Model):
     name=models.CharField(max_length=100, null=True)
     email=models.CharField(max_length=100,null=True)
     def __str__(self):
-        return self.name
-    
+         return self.name if self.name else f"Customer {self.pk}"
 class Product(models.Model):
     name= models.CharField(max_length=100, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -29,20 +29,25 @@ class Product(models.Model):
         return url
     
 class Order(models.Model):
-    customer=models.ForeignKey(Customer,on_delete=models.SET_NULL,blank=True,null=True)
-    date_orderd=models.DateTimeField(auto_now_add=True)
-    complete=models.BooleanField(default=False,null=True,blank=False)
-    transaction_id= models.CharField(max_length=100, null=True)
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True)
+    date_orderd = models.DateTimeField(auto_now_add=True)
+    complete = models.BooleanField(default=False, null=True, blank=False)
     
     # eSewa payment fields
-    esewa_payment_id = models.CharField(max_length=100, null=True, blank=True)
-    esewa_merchant_id = models.CharField(max_length=100, null=True, blank=True)
+    transaction_id = models.CharField(max_length=100, null=True, blank=True)
+    ref_id = models.CharField(max_length=100, null=True, blank=True)
     payment_status = models.CharField(max_length=20, default='pending', choices=[
         ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
         ('completed', 'Completed'),
         ('failed', 'Failed'),
         ('cancelled', 'Cancelled'),
     ])
+    payment_error = models.TextField(null=True, blank=True)
+    esewa_payment_id = models.CharField(max_length=100, null=True, blank=True)
+    esewa_merchant_id = models.CharField(max_length=100, null=True, blank=True)
     payment_method = models.CharField(max_length=20, default='esewa', choices=[
         ('esewa', 'eSewa'),
         ('cod', 'Cash on Delivery'),
@@ -50,28 +55,30 @@ class Order(models.Model):
 
     def __str__(self):
         return str(self.id)
-    
+
     @property
     def shipping(self):
-        shipping= False
-        orderitems= self.orderitem_set.all()
+        shipping = False
+        orderitems = self.orderitem_set.all()
         for i in orderitems:
-            if i in orderitems:
-                if i.product.digital== False:
-                    shipping= True
+            if i.product is None:
+                continue
+            if not i.product.digital:
+                shipping = True
         return shipping
-        
-    
+
     @property
     def get_cart_total(self):
         orderitems = self.orderitem_set.all()
-        total= sum([item.get_total for item in orderitems])
+        total = sum([item.get_total for item in orderitems])
         return total
+
     @property
     def get_cart_items(self):
-         orderitems = self.orderitem_set.all()
-         total = len(orderitems)  # or orderitems.count()
-         return total
+        orderitems = self.orderitem_set.all()
+        total = len([item for item in orderitems if item.product is not None])
+        return total
+
 
     
 class OrderItem(models.Model):
@@ -82,7 +89,9 @@ class OrderItem(models.Model):
 
     @property
     def get_total(self):
-        total= self.product.price *self.quantity
+        if self.product is None:
+            return 0
+        total = self.product.price * self.quantity
         return total
     
 class ShippingAddress(models.Model):

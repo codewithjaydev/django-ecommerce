@@ -42,7 +42,7 @@
         {% if user.is_authenticated %}
             <span class="nav-item">Hi, {{ user.username }}</span>
             <a href="{% url 'logout' %}" class="nav-item">Logout</a>
-            <a href="{% url 'profile' %}" class="nav-item">Profile</a>
+            <a href="{% url 'profile' %}" class="nav-item">Profile order</a>
         {% else %}
             <a href="{% url 'login' %}" class="nav-item">Login</a>
         {% endif %}

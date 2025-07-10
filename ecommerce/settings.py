@@ -147,7 +147,6 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # eSewa Payment Gateway Settings
-# eSewa Sandbox URLs for testing
 ESEWA_MERCHANT_ID = 'EPAYTEST'
 ESEWA_SUCCESS_URL = 'http://127.0.0.1:8000/payment/success/'
 ESEWA_FAILURE_URL = 'http://127.0.0.1:8000/payment/failure/'

@@ -1,125 +1,99 @@
-import hashlib
 import requests
+import time
 from django.conf import settings
-from django.urls import reverse
-from decimal import Decimal
+from urllib.parse import urlencode
+from django.utils import timezone
 
 class ESewaPayment:
     """
     eSewa Payment Integration Class
     """
-    
+
     def __init__(self):
-        # eSewa Configuration
         self.MERCHANT_ID = getattr(settings, 'ESEWA_MERCHANT_ID', 'EPAYTEST')
         self.SUCCESS_URL = getattr(settings, 'ESEWA_SUCCESS_URL', 'http://127.0.0.1:8000/payment/success/')
         self.FAILURE_URL = getattr(settings, 'ESEWA_FAILURE_URL', 'http://127.0.0.1:8000/payment/failure/')
         self.ESEWA_URL = getattr(settings, 'ESEWA_URL', 'https://esewa.com.np/epay/main')
         self.ESEWA_VERIFY_URL = getattr(settings, 'ESEWA_VERIFY_URL', 'https://esewa.com.np/epay/transrec')
-        
-        # For testing, use these URLs:
-        # ESEWA_URL = 'https://esewa.com.np/epay/main'
-        # ESEWA_VERIFY_URL = 'https://esewa.com.np/epay/transrec'
-        
-        # For production, use:
-        # ESEWA_URL = 'https://esewa.com.np/epay/main'
-        # ESEWA_VERIFY_URL = 'https://esewa.com.np/epay/transrec'
-    
+
     def generate_payment_data(self, order, request):
-        """
-        Generate payment data for eSewa
-        """
-        total_amount = float(order.get_cart_total)
-        
-        # Generate unique transaction ID
+        if order.date_orderd is None:
+            order.date_orderd = timezone.now()
+
+        total_amount = f"{order.get_cart_total:.2f}"
         transaction_id = f"TXN_{order.id}_{order.customer.user.id}_{order.date_orderd.strftime('%Y%m%d%H%M%S')}"
-        
+
         payment_data = {
             'amt': total_amount,
-            'pdc': 0,  # Product delivery charge
-            'psc': 0,  # Product service charge
-            'txAmt': 0,  # Tax amount
-            'tAmt': total_amount,  # Total amount
-            'pid': transaction_id,  # Product ID (transaction ID)
-            'scd': self.MERCHANT_ID,  # Merchant code
-            'su': self.SUCCESS_URL,  # Success URL
-            'fu': self.FAILURE_URL,  # Failure URL
+            'pdc': '0',
+            'psc': '0',
+            'txAmt': '0',
+            'tAmt': total_amount,
+            'pid': transaction_id,
+            'scd': self.MERCHANT_ID,
+            'su': self.SUCCESS_URL,
+            'fu': self.FAILURE_URL,
         }
-        
+
         return payment_data, transaction_id
-    
-    def verify_payment(self, oid, amt, refId):
-        """
-        Verify payment with eSewa
-        """
-        try:
-            # Prepare verification data
-            verify_data = {
-                'amt': amt,
-                'rid': refId,
-                'pid': oid,
-                'scd': self.MERCHANT_ID
-            }
-            
-            # Make request to eSewa verification URL
-            response = requests.post(self.ESEWA_VERIFY_URL, data=verify_data, timeout=30)
-            
-            if response.status_code == 200:
-                # Check if verification was successful
-                if 'Success' in response.text or 'SUCCESS' in response.text:
-                    return True, 'Payment verified successfully'
-                else:
-                    # For testing purposes, we'll accept the payment if we have a refId
-                    # In production, you should remove this and only accept verified payments
-                    if refId and refId != '0':
-                        return True, 'Payment accepted for testing (not verified)'
-                    return False, 'Payment verification failed'
-            else:
-                return False, f'Verification request failed with status {response.status_code}'
-                
-        except requests.RequestException as e:
-            # For testing purposes, accept payment if we have a refId
-            if refId and refId != '0':
-                return True, 'Payment accepted for testing (verification failed)'
-            return False, f'Network error during verification: {str(e)}'
-        except Exception as e:
-            return False, f'Verification error: {str(e)}'
-    
+
     def get_payment_url(self, payment_data):
-        """
-        Get eSewa payment URL
-        """
-        return f"{self.ESEWA_URL}?{'&'.join([f'{k}={v}' for k, v in payment_data.items()])}"
-    
-    def process_successful_payment(self, order, ref_id, transaction_id):
-        """
-        Process successful payment
-        """
+        return f"{self.ESEWA_URL}?{urlencode(payment_data)}"
+
+    def verify_payment(self, oid, amt, refId):
+        verify_data = {
+            'amt': amt,
+            'rid': refId,
+            'pid': oid,
+            'scd': self.MERCHANT_ID,
+        }
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+
+        max_retries = 3
+        base_delay = 1
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                print(f"eSewa verify attempt {attempt} with data: {verify_data}")
+                response = requests.post(self.ESEWA_VERIFY_URL, data=verify_data, headers=headers, timeout=30)
+                print(f"Response status: {response.status_code}")
+                print(f"Response text: {response.text}")
+            except requests.RequestException as e:
+                if attempt == max_retries:
+                    return False, f'Network error: {e}'
+                time.sleep(base_delay * (2 ** (attempt - 1)))
+                continue
+
+            if response.status_code != 200:
+                if attempt == max_retries:
+                    return False, f'HTTP Error {response.status_code}'
+                time.sleep(base_delay * (2 ** (attempt - 1)))
+                continue
+
+            if 'Success' in response.text or 'SUCCESS' in response.text:
+                return True, 'Payment verified successfully'
+            else:
+                return False, response.text
+
+        return False, 'Verification retry limit reached'
+
+    def process_successful_payment(self, order, refId, oid):
         try:
-            # Update order with payment information
-            order.esewa_payment_id = ref_id
-            order.transaction_id = transaction_id
-            order.payment_status = 'completed'
+            order.transaction_id = oid
+            order.ref_id = refId
             order.complete = True
+            # Do not set payment_status to 'completed' automatically; admin will update it
+            order.date_orderd = order.date_orderd or timezone.now()
             order.save()
-            
-            return True, 'Payment processed successfully'
+            return True, "Order marked as paid. Awaiting admin status update."
         except Exception as e:
-            return False, f'Error processing payment: {str(e)}'
-    
-    def process_failed_payment(self, order, error_message):
-        """
-        Process failed payment
-        """
+            return False, f"Error saving order: {str(e)}"
+
+    def process_failed_payment(self, order, reason):
         try:
             order.payment_status = 'failed'
+            order.payment_error = reason
             order.save()
-            return True, 'Payment failure recorded'
+            return True, "Payment failure processed."
         except Exception as e:
-            return False, f'Error recording payment failure: {str(e)}'
-
-def format_amount(amount):
-    """
-    Format amount for eSewa (should be in Nepalese Rupees)
-    """
-    return f"{float(amount):.2f}" 
+            return False, f"Error saving failed payment: {str(e)}"

@@ -1,0 +1,14 @@
+{% extends 'store/main.html' %}
+{% block title %}Payment Failed{% endblock title %}
+{% load static %}
+{% block content %}
+<div class="payment-failed-container" style="text-align:center; margin-top:60px;">
+    <img src="{% static 'images/payment_failed.png' %}" alt="Payment Failed" style="width:120px; margin-bottom:20px;">
+    <h1 style="color:#d9534f;">Payment Failed</h1>
+    <p>Unfortunately, your payment could not be processed.</p>
+    <p>Please try again </p>
+    <br>
+    <a href="{% url 'index' %}" style="display:inline-block; margin-top:10px; color:#337ab7;">Back to Home</a>
+</div>
+{% endblock content %}
+
