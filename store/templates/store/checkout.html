@@ -109,14 +109,19 @@
     
     // eSewa Payment Function
     function payWithEsewa() {
-        // Show loading state
         const esewaBtn = document.getElementById('esewa-btn');
-        const originalText = esewaBtn.innerHTML;
         esewaBtn.innerHTML = '<span>Processing...</span>';
         esewaBtn.disabled = true;
         
-        // Redirect to payment initiation
-        window.location.href = '{% url "initiate_payment" %}';
+        // Ensure the form is submitted before redirecting
+        const form = document.getElementById('form');
+        if (form.checkValidity()) {
+            window.location.href = '{% url "initiate_payment" %}';
+        } else {
+            esewaBtn.innerHTML = `<img src="{% static 'css/images/eSewa.png' %}" alt="Pay with eSewa"><span>Pay Rs {{ order.get_cart_total|default:0 }}</span>`;
+            esewaBtn.disabled = false;
+            form.reportValidity();
+        }
     }
     
 

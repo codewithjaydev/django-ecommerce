@@ -155,16 +155,11 @@ def initiate_payment(request):
         order.payment_method = 'esewa'
         order.save()
 
-        payment_url = esewa.get_payment_url(payment_data)
-
-        try:
-            resp = requests.get('https://esewa.com.np', timeout=5)
-            if resp.status_code != 200:
-                messages.warning(request, 'eSewa seems down.')
-        except requests.RequestException:
-            messages.warning(request, 'Cannot reach eSewa now.')
-
-        return redirect(payment_url)
+        # Instead of redirecting, render a template with the payment form
+        return render(request, 'store/esewa_payment_form.html', {
+            'payment_data': payment_data,
+            'esewa_url': esewa.ESEWA_URL
+        })
 
     except Exception as e:
         messages.error(request, f'Error initiating payment: {e}')

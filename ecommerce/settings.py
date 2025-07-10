@@ -150,8 +150,9 @@ LOGOUT_REDIRECT_URL = '/'
 ESEWA_MERCHANT_ID = 'EPAYTEST'
 ESEWA_SUCCESS_URL = 'http://127.0.0.1:8000/payment/success/'
 ESEWA_FAILURE_URL = 'http://127.0.0.1:8000/payment/failure/'
-ESEWA_URL = 'https://esewa.com.np/epay/main'
-ESEWA_VERIFY_URL = 'https://esewa.com.np/epay/transrec'
+ESEWA_URL = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form'
+ESEWA_VERIFY_URL = 'https://rc-epay.esewa.com.np/api/epay/transrec'
+ESEWA_SECRET_KEY = '8gBm/:&EnhH.1/q'
 
 
 

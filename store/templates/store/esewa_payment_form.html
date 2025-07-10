@@ -1,0 +1,20 @@
+{% extends 'store/main.html' %}
+{% load static %}
+
+{% block content %}
+<div class="esewa-payment-form">
+    <h2>Redirecting to eSewa Payment Gateway...</h2>
+    <form id="esewa_payment_form" action="{{ esewa_url }}" method="POST">
+        {% for key, value in payment_data.items %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endfor %}
+        <input type="submit" value="Proceed to Payment" style="display: none;">
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('esewa_payment_form').submit();
+        });
+    </script>
+</div>
+{% endblock content %}
