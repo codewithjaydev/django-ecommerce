@@ -1,4 +1,4 @@
-from django.urls import path, reverse
+from django.urls import path, reverse, include
 from django.shortcuts import redirect
 from . import views  
 
@@ -20,5 +20,9 @@ urlpatterns = [
     path('payment/initiate/', views.initiate_payment, name='initiate_payment'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/failure/', views.payment_failure, name='payment_failure'),
+    path('payment/debug/', views.debug_payment_callback, name='debug_payment_callback'),
     path('cod-order/', views.cod_order, name='cod_order'),
+    path('payment/ipn/', views.esewa_ipn, name='esewa_ipn'),
+    path('order/<int:order_id>/deliver/', views.mark_order_delivered, name='mark_order_delivered'),
+    path('adminpanel/', include('store.adminpanel_urls')),
 ]

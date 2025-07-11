@@ -1,0 +1,47 @@
+{% extends 'adminpanel/base.html' %}
+{% block content %}
+<h2>Orders</h2>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Transaction Code</th>
+            <th>Products</th>
+            <th>Total</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.customer.user.username }}</td>
+            <td>{{ order.date_orderd|date:'Y-m-d H:i' }}</td>
+            <td>{{ order.get_payment_status_display }}</td>
+            <td>{{ order.transaction_id }}</td>
+            <td>
+                {% for item in order.orderitem_set.all %}
+                    {{ item.product.name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    No products
+                {% endfor %}
+            </td>
+            <td>{{ order.get_cart_total }}</td>
+            <td>
+                {% if order.payment_status != 'delivered' %}
+                    <form method="post" action="{% url 'mark_order_delivered' order.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-sm">Mark as Delivered</button>
+                    </form>
+                {% else %}
+                    <span class="badge badge-success">Delivered</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %} 

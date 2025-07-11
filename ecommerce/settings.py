@@ -147,12 +147,53 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # eSewa Payment Gateway Settings
+
 ESEWA_MERCHANT_ID = 'EPAYTEST'
+ESEWA_SECRET_KEY = '8gBm/:&EnhH.1/q'
+ESEWA_URL = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form'
+ESEWA_VERIFY_URL = 'https://rc-epay.esewa.com.np/api/epay/v2/verification/'
+ESEWA_VERIFY_URL_V1 = 'https://rc-epay.esewa.com.np/api/epay/transrec'
+ESEWA_ENV = 'RC'  # or 'PROD'
 ESEWA_SUCCESS_URL = 'http://127.0.0.1:8000/payment/success/'
 ESEWA_FAILURE_URL = 'http://127.0.0.1:8000/payment/failure/'
-ESEWA_URL = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form'
-ESEWA_VERIFY_URL = 'https://rc-epay.esewa.com.np/api/epay/transrec'
-ESEWA_SECRET_KEY = '8gBm/:&EnhH.1/q'
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'},
+        'file': {'class': 'logging.FileHandler', 'filename': 'payment_debug.log'},
+    },
+    'loggers': {
+        'store.views': {'handlers': ['console','file'], 'level': 'DEBUG'},
+        'store.esewa_utils': {'handlers': ['console','file'], 'level': 'DEBUG'},
+    },
+}
 
+# eSewa Payment Configuration
+# Add these to your settings.py file
 
+# Set to True for testing, False for production
+ESEWA_TEST_MODE = True  # Change to False for production
+
+# eSewa Merchant Credentials
+if ESEWA_TEST_MODE:
+    # Test credentials
+    ESEWA_MERCHANT_ID = 'EPAYTEST'
+    ESEWA_SECRET_KEY = '8gBm/:&EnhH.1/q'
+else:
+    # Production credentials (get these from your eSewa merchant account)
+    ESEWA_MERCHANT_ID = 'YOUR_PRODUCTION_MERCHANT_ID'
+    ESEWA_SECRET_KEY = 'YOUR_PRODUCTION_SECRET_KEY'
+
+# Optional: Add these URLs to your settings for reference
+ESEWA_URLS = {
+    'test': {
+        'payment': 'https://rc-epay.esewa.com.np/api/epay/main/v2/form',
+        'verification': 'https://rc-epay.esewa.com.np/api/epay/transaction/status/'
+    },
+    'production': {
+        'payment': 'https://epay.esewa.com.np/api/epay/main/v2/form',
+        'verification': 'https://epay.esewa.com.np/api/epay/transaction/status/'
+    }
+}

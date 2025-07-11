@@ -32,33 +32,80 @@
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="nav-left">
-        <a href="/" class="nav-item">Tarkaribazzar</a>
-        <a href="/" class="nav-item">Store</a>
+<style>
+    .custom-navbar {
+        background: linear-gradient(90deg, #6a82fb 0%, #7367f0 100%);
+        padding: 0.5rem 2rem;
+        color: #fff;
+        font-family: 'Montserrat', Arial, sans-serif;
+        font-weight: 500;
+    }
+    .custom-navbar .navbar-brand, .custom-navbar .nav-link, .custom-navbar .nav-item {
+        color: #fff !important;
+        font-weight: 600;
+        font-size: 1.1em;
+    }
+    .custom-navbar .nav-link {
+        margin-left: 1.5rem;
+        margin-right: 1.5rem;
+    }
+    .custom-navbar .cart-circle {
+        background: #fff;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin-left: 1.5rem;
+    }
+    .custom-navbar .cart-icon {
+        width: 28px;
+        height: 28px;
+        color: #333;
+    }
+    .custom-navbar .cart-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #ff4d6d;
+        color: #fff;
+        border-radius: 50%;
+        font-size: 0.8em;
+        padding: 2px 7px;
+        font-weight: bold;
+    }
+    .custom-navbar .navbar-left {
+        display: flex;
+        align-items: center;
+    }
+    .custom-navbar .navbar-right {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+    }
+
+</style>
+
+<nav class="navbar custom-navbar">
+    <div class="navbar-left">
+        <a class="navbar-brand" href="/">Tarkaribazzar</a>
+        <a class="nav-link" href="/">Store</a>
     </div>
-
-    <div class="nav-right">
+    <div class="navbar-right">
         {% if user.is_authenticated %}
-            <span class="nav-item">Hi, {{ user.username }}</span>
-            <a href="{% url 'logout' %}" class="nav-item">Logout</a>
-            <a href="{% url 'profile' %}" class="nav-item">Profile order</a>
+            <span class="nav-link">Hi, {{ user.username }}</span>
+            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+            <a class="nav-link" href="{% url 'profile' %}">Profile order</a>
         {% else %}
-            <a href="{% url 'login' %}" class="nav-item">Login</a>
+            <a class="nav-link" href="{% url 'login' %}">Login as User</a>
+            <a class="nav-link" href="/adminpanel/">Login as Admin</a>
         {% endif %}
-
-        <div class="cart-container">
-            <img id="cart-img" src="{% static 'css/images/cart.png' %}" alt="Shopping Cart" class="cart-icon"
-                 style="cursor:pointer;"
-                 onclick="window.location.href='{% url 'cart' %}'"
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-
-            <svg class="cart-icon" viewBox="0 0 24 24" style="display: none; fill: rgb(153, 18, 18);">
-                <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-            </svg>
-
+        <a class="cart-circle" href="{% url 'cart' %}">
+            <img id="cart-img" src="{% static 'css/images/cart.png' %}" alt="Shopping Cart" class="cart-icon">
             <span class="cart-badge">{{ cartItems }}</span>
-        </div>
+        </a>
     </div>
 </nav>
 
@@ -77,5 +124,7 @@
 </div>
 
 <script defer src="{% static 'css/js/cart.js' %}"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

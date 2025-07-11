@@ -23,7 +23,7 @@
           <th>Date</th>
           <th>Payment Method</th>
           <th>Status</th>
-          <th>Transaction ID</th>
+          <th>Transaction Code</th>
           <th>Order Items</th>
           <th>Total Price</th>
         </tr>
@@ -46,6 +46,12 @@
                 <li>No items</li>
               {% endfor %}
             </ul>
+            {% if user.is_staff and order.payment_status != 'delivered' %}
+              <form method="post" action="{% url 'mark_order_delivered' order.id %}" style="margin-top:10px;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Mark as Delivered</button>
+              </form>
+            {% endif %}
           </td>
           <td>{{ order.get_cart_total }}</td>
         </tr>

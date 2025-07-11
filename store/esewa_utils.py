@@ -7,6 +7,8 @@ import uuid
 from django.conf import settings
 from urllib.parse import urlencode
 from django.utils import timezone
+import json
+import logging
 
 class ESewaPayment:
     """
@@ -56,41 +58,93 @@ class ESewaPayment:
         return f"{self.ESEWA_URL}?{urlencode(payment_data)}"
 
     def verify_payment(self, oid, amt, refId):
-        verify_data = {
+        from django.conf import settings
+        import logging
+        logger = logging.getLogger('store.esewa_utils')
+
+        # v2 verification data and headers
+        verify_data_v2 = {
+            'amount': amt,
+            'referenceId': refId,
+            'productCode': self.MERCHANT_ID,
+        }
+        headers_v2 = {'Content-Type': 'application/json'}
+
+        # v1 verification data and headers
+        verify_data_v1 = {
             'amt': amt,
             'rid': refId,
             'pid': oid,
             'scd': self.MERCHANT_ID,
         }
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        headers_v1 = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-        max_retries = 3
-        base_delay = 1
+        # Try v2 first if in RC or PROD
+        use_v2 = True
+        if getattr(settings, 'ESEWA_ENV', 'RC') == 'RC':
+            v2_url = getattr(settings, 'ESEWA_VERIFY_URL', self.ESEWA_VERIFY_URL)
+            v1_url = getattr(settings, 'ESEWA_VERIFY_URL_V1', None)
+        else:
+            v2_url = getattr(settings, 'ESEWA_VERIFY_URL', self.ESEWA_VERIFY_URL)
+            v1_url = None
 
-        for attempt in range(1, max_retries + 1):
+        # Try v2 verification
+        if use_v2:
+            logger.info(f"Trying eSewa v2 verification at {v2_url} with data: {verify_data_v2}")
             try:
-                print(f"eSewa verify attempt {attempt} with data: {verify_data}")
-                response = requests.post(self.ESEWA_VERIFY_URL, data=verify_data, headers=headers, timeout=30)
-                print(f"Response status: {response.status_code}")
-                print(f"Response text: {response.text}")
+                response = requests.post(v2_url, json=verify_data_v2, headers=headers_v2, timeout=30)
+                logger.info(f"v2 Response status: {response.status_code}")
+                logger.info(f"v2 Response text: {response.text}")
+                if response.status_code == 200:
+                    try:
+                        json_response = response.json()
+                        logger.info(f"v2 JSON response: {json_response}")
+                        status = json_response.get('status', '').lower()
+                        if status == 'complete':
+                            logger.info("Payment verification successful (v2)")
+                            return True, 'Payment verified successfully (v2)'
+                        else:
+                            logger.warning(f"Payment verification failed (v2): {json_response}")
+                            return False, response.text
+                    except Exception as e:
+                        logger.error(f"Error parsing v2 JSON response: {e}")
+                        logger.error(f"Unclear v2 verification response: {response.text}")
+                        return False, f"Unclear v2 verification response: {response.text}"
+                elif response.status_code == 404 and v1_url:
+                    logger.warning("v2 endpoint returned 404, falling back to v1 endpoint.")
+                    # Fall through to v1
+                else:
+                    logger.error(f"HTTP Error {response.status_code} on v2 endpoint")
+                    return False, f'HTTP Error {response.status_code} (v2)'
             except requests.RequestException as e:
-                if attempt == max_retries:
-                    return False, f'Network error: {e}'
-                time.sleep(base_delay * (2 ** (attempt - 1)))
-                continue
+                logger.error(f"Network error on v2 attempt: {e}")
+                if not v1_url:
+                    return False, f'Network error: {e} (v2)'
+                # Fall through to v1
 
-            if response.status_code != 200:
-                if attempt == max_retries:
-                    return False, f'HTTP Error {response.status_code}'
-                time.sleep(base_delay * (2 ** (attempt - 1)))
-                continue
+        # Try v1 verification if v2 failed and v1_url is available
+        if v1_url:
+            logger.info(f"Trying eSewa v1 verification at {v1_url} with data: {verify_data_v1}")
+            try:
+                response = requests.post(v1_url, data=verify_data_v1, headers=headers_v1, timeout=30)
+                logger.info(f"v1 Response status: {response.status_code}")
+                logger.info(f"v1 Response text: {response.text}")
+                if response.status_code == 200:
+                    # v1 is XML, so check for <response_code> or <status>
+                    if 'success' in response.text.lower() or 'complete' in response.text.lower():
+                        logger.info("Payment verification successful (v1)")
+                        return True, 'Payment verified successfully (v1)'
+                    else:
+                        logger.warning(f"Payment verification failed (v1): {response.text}")
+                        return False, response.text
+                else:
+                    logger.error(f"HTTP Error {response.status_code} on v1 endpoint")
+                    return False, f'HTTP Error {response.status_code} (v1)'
+            except requests.RequestException as e:
+                logger.error(f"Network error on v1 attempt: {e}")
+                return False, f'Network error: {e} (v1)'
 
-            if 'Success' in response.text or 'SUCCESS' in response.text:
-                return True, 'Payment verified successfully'
-            else:
-                return False, response.text
-
-        return False, 'Verification retry limit reached'
+        return False, 'Verification failed: No valid endpoint or all attempts failed.'
 
     def process_successful_payment(self, order, refId, oid):
         try:

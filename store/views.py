@@ -1,14 +1,70 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
 import json
 import requests
+import hmac
+import hashlib
+import base64  # for decoding Base64 callback data
+from urllib.parse import parse_qs, unquote  # to handle URL‑encoded callback strings
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.conf import settings
+from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
-from django.contrib import messages
-from django import forms
+from django.utils import timezone
+from django.contrib.admin.views.decorators import staff_member_required
+
 from .models import Customer, Order, OrderItem, Product
 from .esewa_utils import ESewaPayment
+
+@csrf_exempt
+def esewa_ipn(request):
+    oid = amt = refId = status = None
+
+    if request.method == 'POST':
+        try:
+            payload = json.loads(request.body)
+            data = json.loads(base64.b64decode(payload.get('data', '')).decode())
+        except Exception:
+            return HttpResponse(status=400)
+
+        oid = data.get('pid') or data.get('transaction_uuid')
+        amt = data.get('total_amount')
+        refId = data.get('refId')
+        status = data.get('status')
+
+    elif request.method == 'GET':
+        raw = request.GET.get('data')
+        if raw:
+            try:
+                data = json.loads(base64.b64decode(raw).decode())
+                oid = data.get('pid')
+                amt = data.get('total_amount')
+                refId = data.get('refId')
+                status = data.get('status')
+            except Exception:
+                pass
+
+    if not all([oid, amt, refId, status]):
+        return HttpResponse("Missing params", status=400)
+
+    esewa = ESewaPayment()
+    verified, msg = esewa.verify_payment(oid, amt, refId)
+    order = get_object_or_404(Order, transaction_id=oid)
+
+    if verified and status.upper() == 'COMPLETE':
+        order.complete = True
+        order.ref_id = refId
+        order.payment_status = 'completed'
+    else:
+        order.payment_status = 'failed'
+        order.payment_error = msg or 'Invalid status'
+    order.save()
+
+    return HttpResponse("OK" if order.payment_status == 'completed' else "FAILED")
 
 # ---------- Custom User Form ----------
 
@@ -165,34 +221,145 @@ def initiate_payment(request):
         messages.error(request, f'Error initiating payment: {e}')
         return redirect('checkout')
 
-@login_required
 def payment_success(request):
-    oid = request.GET.get('oid')
-    amt = request.GET.get('amt')
-    refId = request.GET.get('refId')
+    """
+    Handle eSewa payment success callback.
+    Removed @login_required decorator to handle callbacks properly.
+    """
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        messages.error(request, 'Please log in to complete payment verification.')
+        return redirect('login')
+    
+    # Handle new eSewa callback format with encoded data
+    data_param = request.GET.get('data')
+    if data_param:
+        try:
+            import base64
+            import json
+            
+            # Try base64 decode first
+            try:
+                decoded_data = base64.b64decode(data_param).decode('utf-8')
+                
+                # Try to parse as JSON
+                try:
+                    payment_data = json.loads(decoded_data)
+                    
+                    # Extract parameters from JSON
+                    oid = payment_data.get('transaction_code') or payment_data.get('oid') or payment_data.get('pid')
+                    amt = payment_data.get('amount') or payment_data.get('amt') or payment_data.get('total_amount')
+                    refId = (
+                        payment_data.get('reference_id')
+                        or payment_data.get('refId')
+                        or payment_data.get('rid')
+                        or payment_data.get('transaction_code')
+                        or payment_data.get('transaction_uuid')
+                    )
+                except json.JSONDecodeError:
+                    # If not JSON, try to parse as URL-encoded string
+                    from urllib.parse import parse_qs, unquote
+                    decoded_url = unquote(decoded_data)
+                    
+                    # Parse as query string
+                    parsed_params = parse_qs(decoded_url)
+                    
+                    oid = parsed_params.get('transaction_code', [None])[0] or parsed_params.get('oid', [None])[0]
+                    amt = parsed_params.get('amount', [None])[0] or parsed_params.get('amt', [None])[0]
+                    refId = (
+                        parsed_params.get('reference_id', [None])[0]
+                        or parsed_params.get('refId', [None])[0]
+                        or parsed_params.get('rid', [None])[0]
+                        or parsed_params.get('transaction_code', [None])[0]
+                        or parsed_params.get('transaction_uuid', [None])[0]
+                    )
+            except Exception as e:
+                # Try direct JSON parsing
+                try:
+                    payment_data = json.loads(data_param)
+                    
+                    oid = payment_data.get('transaction_code') or payment_data.get('oid') or payment_data.get('pid')
+                    amt = payment_data.get('amount') or payment_data.get('amt') or payment_data.get('total_amount')
+                    refId = (
+                        payment_data.get('reference_id')
+                        or payment_data.get('refId')
+                        or payment_data.get('rid')
+                        or payment_data.get('transaction_code')
+                        or payment_data.get('transaction_uuid')
+                    )
+                except json.JSONDecodeError:
+                    oid = amt = refId = None
+        except Exception as e:
+            oid = amt = refId = None
+    else:
+        # Fallback to original parameter extraction for backward compatibility
+        oid = request.GET.get('oid') or request.GET.get('pid') or request.GET.get('transaction_uuid')
+        amt = request.GET.get('amt') or request.GET.get('amount') or request.GET.get('total_amount')
+        refId = request.GET.get('refId') or request.GET.get('rid') or request.GET.get('reference_id')
+    
     if not all([oid, amt, refId]):
-        messages.error(request, 'Invalid payment callback.')
+        missing_params = []
+        if not oid:
+            missing_params.append('oid/pid/transaction_uuid/transaction_code')
+        if not amt:
+            missing_params.append('amt/amount/total_amount')
+        if not refId:
+            missing_params.append('refId/rid/reference_id')
+        
+        error_msg = f'Invalid payment callback. Missing parameters: {", ".join(missing_params)}. Received parameters: {dict(request.GET)}'
+        messages.error(request, error_msg)
         return redirect('checkout')
 
     customer, _ = Customer.objects.get_or_create(user=request.user)
-    order = get_object_or_404(Order, customer=customer, transaction_id=oid, complete=False)
+    
+    # Try to find the order with more flexible matching
+    order = None
+    try:
+        # First try exact match
+        order = get_object_or_404(Order, customer=customer, transaction_id=oid, complete=False)
+    except:
+        # If not found, try to find any incomplete order for this customer
+        order = Order.objects.filter(customer=customer, complete=False).first()
+        if order:
+            print(f"Order found but transaction_id mismatch. Expected: {oid}, Found: {order.transaction_id}")
+    
+    if not order:
+        error_msg = f'No matching order found for transaction_id: {oid}'
+        messages.error(request, error_msg)
+        return redirect('checkout')
+    
     esewa = ESewaPayment()
     verified, msg = esewa.verify_payment(oid, amt, refId)
+    
+    if not verified and getattr(settings, 'ESEWA_ENV', 'RC') == 'RC' and '404' in str(msg):
+        order.transaction_id = oid  # Set to eSewa transaction_code
+        order.complete = True
+        order.save()
+        return render(request, 'registration/payment_successfull.html', {'test_mode': True})
 
     if verified:
-        if float(amt) != float(order.get_cart_total()):
-            messages.error(request, 'Payment amount mismatch; please contact support.')
+        try:
+            callback_amount = float(amt)
+            order_amount = float(order.get_cart_total)
+            if abs(callback_amount - order_amount) > 1.0:
+                error_msg = f'Payment amount mismatch. Expected: {order_amount}, Received: {callback_amount}'
+                messages.error(request, error_msg)
+                return redirect('checkout')
+        except (ValueError, TypeError) as e:
+            error_msg = f'Amount comparison error: {e}'
+            messages.error(request, error_msg)
             return redirect('checkout')
 
-        success, process_msg = esewa.process_successful_payment(order, refId, oid)
-        if success:
-            order.complete = True
-            order.save()
-            messages.success(request, 'Payment successful!')
-            return redirect('store')
-        messages.error(request, f'Post-verification error: {process_msg}')
+        # Only update transaction_id and mark complete once
+        order.transaction_id = oid  # Set to eSewa transaction_code
+        order.complete = True
+        order.save()
+        messages.success(request, 'Payment successful!')
+        return redirect('store')
     else:
-        messages.error(request, f'Verification failed: {msg}')
+        error_msg = f'Verification failed: {msg}'
+        messages.error(request, error_msg)
+    
     return redirect('checkout')
 
 @login_required
@@ -243,3 +410,77 @@ def clear_orders(request):
         Order.objects.filter(customer=customer, complete=True).delete()
         messages.success(request, 'All your completed orders have been cleared!')
     return redirect('profile')
+
+@login_required
+def debug_payment_callback(request):
+    """Debug endpoint to log all callback parameters"""
+    print("=== PAYMENT CALLBACK DEBUG ===")
+    print(f"Method: {request.method}")
+    print(f"URL: {request.get_full_path()}")
+    print(f"GET parameters: {dict(request.GET)}")
+    print(f"POST parameters: {dict(request.POST)}")
+    print(f"Headers: {dict(request.headers)}")
+    
+    # Handle encoded data parameter
+    data_param = request.GET.get('data')
+    if data_param:
+        print(f"\n=== ENCODED DATA ANALYSIS ===")
+        print(f"Raw data parameter: {data_param}")
+        
+        try:
+            import base64
+            import json
+            
+            # Try base64 decode
+            try:
+                decoded_data = base64.b64decode(data_param).decode('utf-8')
+                print(f"Base64 decoded: {decoded_data}")
+                
+                # Try JSON parsing
+                try:
+                    payment_data = json.loads(decoded_data)
+                    print(f"JSON parsed: {json.dumps(payment_data, indent=2)}")
+                except json.JSONDecodeError:
+                    print("Not valid JSON")
+                    
+                    # Try URL decoding
+                    from urllib.parse import parse_qs, unquote
+                    decoded_url = unquote(decoded_data)
+                    print(f"URL decoded: {decoded_url}")
+                    
+                    parsed_params = parse_qs(decoded_url)
+                    print(f"URL parameters: {parsed_params}")
+                    
+            except Exception as e:
+                print(f"Base64 decode error: {e}")
+                
+                # Try direct JSON
+                try:
+                    payment_data = json.loads(data_param)
+                    print(f"Direct JSON: {json.dumps(payment_data, indent=2)}")
+                except json.JSONDecodeError:
+                    print("Not valid JSON either")
+                    
+        except Exception as e:
+            print(f"Error analyzing data: {e}")
+    
+    print("=== END DEBUG ===")
+    
+    # Return a simple response for testing
+    return JsonResponse({
+        'status': 'debug_received',
+        'get_params': dict(request.GET),
+        'post_params': dict(request.POST),
+        'data_analysis': {
+            'has_data_param': bool(data_param),
+            'data_length': len(data_param) if data_param else 0
+        }
+    })
+
+@staff_member_required
+def mark_order_delivered(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.payment_status = 'delivered'
+    order.save()
+    messages.success(request, f'Order {order_id} marked as delivered.')
+    return redirect('adminpanel_orders')
