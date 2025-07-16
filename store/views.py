@@ -484,3 +484,12 @@ def mark_order_delivered(request, order_id):
     order.save()
     messages.success(request, f'Order {order_id} marked as delivered.')
     return redirect('adminpanel_orders')
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    cartItems = 0
+    if request.user.is_authenticated:
+        customer, _ = Customer.objects.get_or_create(user=request.user)
+        order, _ = Order.objects.get_or_create(customer=customer, complete=False)
+        cartItems = order.get_cart_items if hasattr(order, 'get_cart_items') else 0
+    return render(request, 'store/product_detail.html', {'product': product, 'cartItems': cartItems})

@@ -4,6 +4,8 @@
 <form method="post" enctype="multipart/form-data" class="mt-4">
     {% csrf_token %}
     {{ form.as_p }}
+    <label for="id_about_products">Description</label>
+    <textarea name="about_products" id="id_about_products" class="form-control">{{ form.about_products.value|default_if_none:"" }}</textarea>
     <button type="submit" class="btn btn-primary">{{ action }}</button>
     <a href="{% url 'adminpanel_products' %}" class="btn btn-secondary">Cancel</a>
 </form>

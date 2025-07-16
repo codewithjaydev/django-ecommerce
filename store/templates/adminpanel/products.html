@@ -7,6 +7,7 @@
         <tr>
             <th>ID</th>
             <th>Name</th>
+            <th>Description</th>
             <th>Price</th>
             <th>Actions</th>
         </tr>
@@ -16,6 +17,7 @@
         <tr>
             <td>{{ product.id }}</td>
             <td>{{ product.name }}</td>
+            <td>{{ product.about_products|default_if_none:"" }}</td>
             <td>{{ product.price }}</td>
             <td>
                 <a href="{% url 'adminpanel_product_edit' product.id %}" class="btn btn-sm btn-primary">Edit</a>

@@ -8,7 +8,7 @@ from django import forms
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'price', 'image']
+        fields = ['name', 'price', 'image', 'about_products']
 
 @staff_member_required
 def dashboard(request):

@@ -105,6 +105,15 @@
         console.log('Form submitted..');
         document.getElementById('form-btn').style.display = 'none';
         document.getElementById('payment-info').style.display = 'block';
+        // Hide shipping info section smoothly
+        const shippingSection = document.querySelector('.user-shipping-info');
+        if (shippingSection) {
+            shippingSection.style.transition = 'opacity 0.5s';
+            shippingSection.style.opacity = 0;
+            setTimeout(() => {
+                shippingSection.style.display = 'none';
+            }, 500);
+        }
     });
     
     // eSewa Payment Function

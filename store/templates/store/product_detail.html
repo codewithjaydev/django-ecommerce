@@ -1,0 +1,73 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+<style>
+.product-detail-container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 32px 28px;
+    font-family: 'Montserrat', Arial, sans-serif;
+}
+.product-detail-image {
+    width: 100%;
+    max-width: 320px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.product-detail-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #3a3a3a;
+    text-align: center;
+}
+.product-detail-description {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 18px;
+    text-align: center;
+}
+.product-detail-price {
+    font-size: 1.3rem;
+    color: #28a745;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+}
+.back-to-store {
+    display: block;
+    margin: 0 auto;
+    margin-top: 18px;
+    padding: 10px 24px;
+    background: #7367f0;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.2s;
+}
+.back-to-store:hover {
+    background: #5a54c7;
+    color: #fff;
+}
+</style>
+<div class="product-detail-container">
+    {% if product.imageURL %}
+        <img src="{{ product.imageURL }}" alt="{{ product.name }}" class="product-detail-image">
+    {% endif %}
+    <h1 class="product-detail-title">{{ product.name }}</h1>
+    <div class="product-detail-description">{{ product.about_products|default_if_none:"No description available." }}</div>
+    <div class="product-detail-price">Rs{{ product.price }} Perkg</div>
+    <a href="{% url 'store' %}" class="back-to-store">&#8592; Back to Store</a>
+</div>
+{% endblock content %} 

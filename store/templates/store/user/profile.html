@@ -1,6 +1,7 @@
 {% extends 'store/main.html' %}
 
 {% block content %}
+<a href="{% url 'store' %}" class="back-to-store-btn" style="display:inline-block;margin-bottom:18px;padding:10px 24px;background:#7367f0;color:#fff;border:none;border-radius:6px;font-size:1rem;font-weight:600;text-decoration:none;transition:background 0.2s;">&#8592; Back to Store</a>
 <div class="profile-orders">
   <h1>Profile Orders</h1>
   
@@ -46,12 +47,6 @@
                 <li>No items</li>
               {% endfor %}
             </ul>
-            {% if user.is_staff and order.payment_status != 'delivered' %}
-              <form method="post" action="{% url 'mark_order_delivered' order.id %}" style="margin-top:10px;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-success">Mark as Delivered</button>
-              </form>
-            {% endif %}
           </td>
           <td>{{ order.get_cart_total }}</td>
         </tr>

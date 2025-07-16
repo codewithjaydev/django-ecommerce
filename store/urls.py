@@ -24,5 +24,6 @@ urlpatterns = [
     path('cod-order/', views.cod_order, name='cod_order'),
     path('payment/ipn/', views.esewa_ipn, name='esewa_ipn'),
     path('order/<int:order_id>/deliver/', views.mark_order_delivered, name='mark_order_delivered'),
+    path('product/<int:product_id>/', views.product_detail, name='product_detail'),
     path('adminpanel/', include('store.adminpanel_urls')),
 ]

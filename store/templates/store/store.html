@@ -22,33 +22,32 @@
 <div class="product-row">
     {% for product in products %}
     <div class="product-col">
-        <div class="box-element product">
+        <a href="{% url 'product_detail' product.id %}" class="box-element product" style="text-decoration:none; color:inherit;">
             <img class="thumbnail" src="{{product.imageURL}}" alt="image not found">
             <div class="product-info">
                 <h3 class="product-title">{{ product.name }}</h3>
                 <div class="action-container">
                     <div class="left-action">
                         {% if user.is_authenticated %}
-                            <button data-product={{product.id}} data-action="add" class="btn btn-add-to-cart update-cart">Add to Cart</button>
+                            <button data-product="{{ product.id }}" data-action="add" class="btn btn-add-to-cart update-cart">Add to Cart</button>
                         {% else %}
                             <button onclick="window.location.href='{% url 'login' %}'" class="btn btn-login-required">Add to Cart</button>
                         {% endif %}
                     </div>
                     <div class="right-group">
-                        <button class="btn btn-view">View</button>
                         <span class="product-price">Rs{{ product.price }}Perkg</span>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
     {% endfor %}
 </div>  
+
 <script>
-    {% if user.is_authenticated %}
+{% if user.is_authenticated %}
     document.querySelectorAll('.btn-add-to-cart').forEach(button => {
         button.addEventListener('click', function() {
-            
             let msg = document.createElement('div');
             msg.textContent = 'Added to cart successfully!';
             msg.style.position = 'fixed';
@@ -70,6 +69,6 @@
             }, 2000);
         });
     });
-    {% endif %}
+{% endif %}
 </script>
 {% endblock content %}

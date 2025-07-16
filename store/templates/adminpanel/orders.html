@@ -16,6 +16,7 @@
     </thead>
     <tbody>
         {% for order in orders %}
+        {% if order.orderitem_set.all %}
         <tr>
             <td>{{ order.id }}</td>
             <td>{{ order.customer.user.username }}</td>
@@ -41,6 +42,7 @@
                 {% endif %}
             </td>
         </tr>
+        {% endif %}
         {% endfor %}
     </tbody>
 </table>
