@@ -498,7 +498,7 @@ def mark_order_delivered(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     order.payment_status = 'delivered'
     order.save()
-    messages.success(request, f'Order {order_id} marked as delivered.')
+    messages.success(request, 'Order has been delivered you will receive order soon.')
     return redirect('adminpanel_orders')
 
 def product_detail(request, product_id):

@@ -31,7 +31,13 @@
           <td>{{ order.id }}</td>
           <td>{{ order.date_orderd|date:'Y-m-d' }}</td>
           <td>{{ order.get_payment_method_display }}</td>
-          <td>{{ order.get_payment_status_display }}</td>
+          <td>
+            {% if order.get_payment_status_display == 'Delivered' %}
+              <span class="delivered-message">Your order has been delivered</span>
+            {% else %}
+              {{ order.get_payment_status_display }}
+            {% endif %}
+          </td>
           <td>{{ order.transaction_id|default:'-' }}</td>
           <td>
             <ul class="order-items-list">
@@ -71,3 +77,14 @@
 </script>
 {% endif %}
 {% endblock content %}
+
+<style>
+.delivered-message {
+  color: #fff;
+  background: #28a745;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-block;
+}
+</style>
