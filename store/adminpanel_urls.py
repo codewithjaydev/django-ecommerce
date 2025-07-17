@@ -9,5 +9,6 @@ urlpatterns = [
     path('products/<int:product_id>/edit/', adminpanel_views.product_edit, name='adminpanel_product_edit'),
     path('products/<int:product_id>/delete/', adminpanel_views.product_delete, name='adminpanel_product_delete'),
     path('users/', adminpanel_views.users, name='adminpanel_users'),
+    path('users/<int:user_id>/edit/', adminpanel_views.user_edit, name='adminpanel_user_edit'),
     path('logout/', adminpanel_views.admin_logout, name='adminpanel_logout'),
 ] 

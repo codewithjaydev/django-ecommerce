@@ -9,6 +9,7 @@
             <th>Email</th>
             <th>Is Staff</th>
             <th>Is Active</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -19,6 +20,7 @@
             <td>{{ user.email }}</td>
             <td>{{ user.is_staff }}</td>
             <td>{{ user.is_active }}</td>
+            <td><a href="{% url 'adminpanel_user_edit' user.id %}">Edit</a></td>
         </tr>
         {% endfor %}
     </tbody>

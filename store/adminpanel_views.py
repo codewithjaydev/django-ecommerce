@@ -10,6 +10,11 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = ['name', 'price', 'image', 'about_products']
 
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'is_staff', 'is_active']
+
 @staff_member_required
 def dashboard(request):
     return render(request, 'adminpanel/dashboard.html')
@@ -26,8 +31,21 @@ def products(request):
 
 @staff_member_required
 def users(request):
-    users = User.objects.all()
+    # Only include users where not both is_staff and is_active are False
+    users = User.objects.exclude(is_staff=False, is_active=False)
     return render(request, 'adminpanel/users.html', {'users': users})
+
+@staff_member_required
+def user_edit(request, user_id):
+    user = User.objects.get(pk=user_id)
+    if request.method == 'POST':
+        form = UserEditForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('adminpanel_users')
+    else:
+        form = UserEditForm(instance=user)
+    return render(request, 'adminpanel/user_edit.html', {'form': form, 'user_obj': user})
 
 @staff_member_required
 def admin_logout(request):
