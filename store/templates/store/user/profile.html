@@ -7,17 +7,13 @@
   
   <div class="profile-header">
     <div class="username-display">Username: {{ user.username }}</div>
-    
     {% if orders %}
-      <form method="post" action="{% url 'clear_orders' %}" class="clear-orders-form">
-        {% csrf_token %}
-        <button type="submit" class="clear-orders-btn">Clear Orders</button>
-      </form>
+      <button id="toggle-orders-btn" type="button" style="margin-left: 12px; padding: 8px 18px; background: #28a745; color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer;">Hide Orders</button>
     {% endif %}
   </div>
   
   {% if orders %}
-    <table class="orders-table">
+    <table class="orders-table" id="orders-table">
       <thead>
         <tr>
           <th>Order ID</th>
@@ -59,4 +55,19 @@
     </div>
   {% endif %}
 </div>
+
+{% if orders %}
+<script>
+  const toggleBtn = document.getElementById('toggle-orders-btn');
+  const ordersTable = document.getElementById('orders-table');
+  let ordersVisible = true;
+  if (toggleBtn && ordersTable) {
+    toggleBtn.addEventListener('click', function() {
+      ordersVisible = !ordersVisible;
+      ordersTable.style.display = ordersVisible ? '' : 'none';
+      toggleBtn.textContent = ordersVisible ? 'Hide Orders' : 'Show Orders';
+    });
+  }
+</script>
+{% endif %}
 {% endblock content %}

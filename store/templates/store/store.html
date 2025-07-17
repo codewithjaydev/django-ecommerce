@@ -48,25 +48,7 @@
 {% if user.is_authenticated %}
     document.querySelectorAll('.btn-add-to-cart').forEach(button => {
         button.addEventListener('click', function() {
-            let msg = document.createElement('div');
-            msg.textContent = 'Added to cart successfully!';
-            msg.style.position = 'fixed';
-            msg.style.top = '30px';
-            msg.style.right = '30px';
-            msg.style.background = '#28a745';
-            msg.style.color = 'white';
-            msg.style.padding = '16px 28px';
-            msg.style.borderRadius = '8px';
-            msg.style.fontSize = '1.1rem';
-            msg.style.boxShadow = '0 4px 16px rgba(40,167,69,0.15)';
-            msg.style.zIndex = 9999;
-            msg.style.opacity = 1;
-            msg.style.transition = 'opacity 1.5s';
-            document.body.appendChild(msg);
-            setTimeout(() => {
-                msg.style.opacity = 0;
-                setTimeout(() => msg.remove(), 5000);
-            }, 2000);
+            alert('Added to cart successfully!');
         });
     });
 {% endif %}

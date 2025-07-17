@@ -1161,36 +1161,36 @@ body {
     margin-top: 5px;
 }
 
-.success-message {
+/* .success-message {
     color: #28a745;
     font-size: 14px;
     margin-top: 5px;
-}
+} */
 
-.error-message {
+/* .error-message {
     color: #dc3545;
     font-size: 14px;
     margin-top: 5px;
-}
+} */
 
-.success-message, .error-message {
+/* .success-message, .error-message {
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 15px;
     border: 1px solid;
-}
+} */
 
-.success-message {
+/* .success-message {
     background-color: #d4edda;
     border-color: #c3e6cb;
     color: #155724;
-}
+} */
 
-.error-message {
+/* .error-message {
     background-color: #f8d7da;
     border-color: #f5c6cb;
     color: #721c24;
-}
+} */
 .messages-container {
     position: fixed;
     top: 20px;
@@ -1208,20 +1208,20 @@ body {
     animation: slideIn 0.5s ease-out;
 }
 
-.alert-success {
+/* .alert-success {
     background-color: #28a745;
     border: 1px solid #1e7e34;
-}
+} */
 
-.alert-error {
+/* .alert-error {
     background-color: #dc3545;
     border: 1px solid #c82333;
-}
+} */
 
-.alert-info {
+/* .alert-info {
     background-color: #17a2b8;
     border: 1px solid #117a8b;
-}
+} */
 
 @keyframes slideIn {
     from {
