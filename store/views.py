@@ -69,9 +69,13 @@ def esewa_ipn(request):
 # ---------- Custom User Form ----------
 
 class CustomUserCreationForm(UserCreationForm):
-    """User form without default password validation hints."""
+    email = forms.EmailField(required=True, label='Email')
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Reorder fields: username, email, password1, password2
+        field_order = ['username', 'email', 'password1', 'password2']
+        self.order_fields(field_order)
         for field in ['password1', 'password2']:
             self.fields[field].validators = []
             self.fields[field].help_text = ''
@@ -91,6 +95,18 @@ class CustomUserCreationForm(UserCreationForm):
         if pw1 and pw2 and pw1 != pw2:
             raise forms.ValidationError('Passwords do not match.')
         return pw2
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        if commit:
+            user.save()
+            # Also update Customer email if Customer exists or is created
+            from .models import Customer
+            customer, _ = Customer.objects.get_or_create(user=user)
+            customer.email = user.email
+            customer.save()
+        return user
 
 # ---------- Authentication Views ----------
 
